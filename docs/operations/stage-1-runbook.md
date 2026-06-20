@@ -83,6 +83,33 @@ docker compose logs --since=5m payment-bridge
 - Hetzner production uses separate production secrets and production DNS.
 - The same validated New API image digest from staging is used for production.
 
+## Wallet NOWPayments Top-Up Check
+
+After deploying the custom New API image, verify the native wallet top-up entry:
+
+```bash
+cd /opt/api/deploy
+docker compose ps
+curl -fsS "https://$APP_HOST/health/payment"
+curl -fsS "https://$APP_HOST/api/status"
+```
+
+Open:
+
+```text
+https://$APP_HOST/console/topup
+```
+
+Confirm:
+
+- The USDT-TRC20 top-up card appears.
+- The UI follows the selected language.
+- Amount buttons show 10, 25, 50, and 100.
+- Clicking the payment button creates a NOWPayments invoice.
+- The browser redirects to the invoice URL.
+
+Invoice creation and redirect only prove checkout startup, not payment success. Do not treat the browser return URL as proof of payment. Confirm crediting only after NOWPayments IPN arrives by checking a `credited` order with `credited_at` set in `payment_orders` and a matching user quota increase.
+
 ## Before Public Launch
 
 - HTTPS works.
