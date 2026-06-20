@@ -146,7 +146,7 @@ export async function releaseCreditClaim(pool, orderId) {
   const now = Math.floor(Date.now() / 1000);
   const [result] = await pool.query(
     `UPDATE payment_orders
-     SET status = 'pending',
+     SET status = 'failed',
          updated_at = :now
      WHERE id = :orderId
        AND credited_at IS NULL

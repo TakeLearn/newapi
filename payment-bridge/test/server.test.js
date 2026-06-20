@@ -268,6 +268,50 @@ describe('payment bridge server routes', () => {
     expect(markCredited).not.toHaveBeenCalled();
   });
 
+  it('does not retry New API quota crediting on a repeated IPN after a failed credit claim', async () => {
+    isValidIpnSignature.mockReturnValue(true);
+    findOrderForIpn.mockResolvedValue({
+      id: 'order_123',
+      user_id: 42,
+      amount_usd: 25,
+      quota_to_add: 12500000
+    });
+    markIpnObserved.mockResolvedValue();
+    claimCreditOnce.mockResolvedValueOnce(true).mockResolvedValueOnce(false);
+    addUserQuota.mockRejectedValue(new Error('New API quota add failed: 502 upstream_error'));
+    releaseCreditClaim.mockResolvedValue(true);
+
+    const app = createServer({ config, pool });
+    const ipn = {
+      order_id: 'order_123',
+      payment_status: 'finished',
+      pay_currency: 'USDTTRC20',
+      actually_paid: 25
+    };
+
+    const firstResponse = await inject(app, {
+      method: 'POST',
+      path: '/payment/ipn',
+      headers: { 'x-nowpayments-sig': 'valid-signature' },
+      body: ipn
+    });
+    const retryResponse = await inject(app, {
+      method: 'POST',
+      path: '/payment/ipn',
+      headers: { 'x-nowpayments-sig': 'valid-signature' },
+      body: ipn
+    });
+
+    expect(firstResponse.status).toBe(502);
+    expect(firstResponse.body).toEqual({ success: false, message: 'crediting failed' });
+    expect(retryResponse.status).toBe(200);
+    expect(retryResponse.body).toEqual({ success: true, data: { credited: false } });
+    expect(claimCreditOnce).toHaveBeenCalledTimes(2);
+    expect(addUserQuota).toHaveBeenCalledTimes(1);
+    expect(releaseCreditClaim).toHaveBeenCalledWith(pool, 'order_123');
+    expect(markCredited).not.toHaveBeenCalled();
+  });
+
   it('rejects final paid IPNs with malformed paid amount', async () => {
     isValidIpnSignature.mockReturnValue(true);
     findOrderForIpn.mockResolvedValue({

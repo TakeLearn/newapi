@@ -82,7 +82,7 @@ describe('order policy', () => {
     expect(calls[0].sql).toContain('credited_at IS NULL');
   });
 
-  it('releases a credit claim back to pending for retry', async () => {
+  it('releases a credit claim to failed so automatic retries cannot reclaim it', async () => {
     const calls = [];
     const pool = {
       async query(sql, params) {
@@ -92,7 +92,8 @@ describe('order policy', () => {
     };
 
     await expect(releaseCreditClaim(pool, 'order_a')).resolves.toBe(true);
-    expect(calls[0].sql).toContain("SET status = 'pending'");
+    expect(calls[0].sql).toContain("SET status = 'failed'");
+    expect(calls[0].sql).not.toContain("SET status = 'pending'");
     expect(calls[0].sql).toContain("status = 'crediting'");
     expect(calls[0].sql).toContain('credited_at IS NULL');
   });

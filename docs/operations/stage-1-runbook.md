@@ -34,12 +34,12 @@ docker compose exec -T mysql sh -c 'mysql -u root -p"$MYSQL_ROOT_PASSWORD" "$MYS
   -e "SELECT id,user_id,nowpayments_invoice_id,nowpayments_payment_id,amount_usd,quota_to_add,status,credited_at,created_at,updated_at FROM payment_orders ORDER BY created_at DESC LIMIT 20\G"'
 ```
 
-3. Compare the order against the NOWPayments dashboard. Only treat final paid or confirmed statuses as eligible for manual credit.
+3. Compare the order against the NOWPayments dashboard. Only treat final paid or confirmed statuses as eligible for manual credit. Inspect `failed` orders manually because they may represent a claimed credit attempt where New API quota crediting returned an ambiguous failure.
 4. If NOWPayments shows final paid status and the order is not credited, use New API admin to add the fixed recharge amount manually to the affected user.
 5. Record the manual credit outside the database in the incident notes, including operator, time, NOWPayments ID, New API user ID, amount, quota added, and reason.
 6. Do not update `payment_orders.status` to an invalid value. The table status constraint only allows `pending`, `crediting`, `credited`, `failed`, and `expired`; manual credits are recorded outside DB and do not alter `payment_orders` to invalid states such as `manual_credited`.
 
-After manual crediting, keep the order evidence intact for later reconciliation. If duplicate automatic crediting happens after a manual credit, disable the payment bridge and reconcile the user quota before re-enabling payment traffic.
+After manual crediting, keep the order evidence intact for later reconciliation. `failed` crediting orders are not eligible for automatic quota retry; leave them for manual reconciliation and incident notes.
 
 ## Duplicate Or Suspicious Payment
 
