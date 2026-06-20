@@ -1,0 +1,128 @@
+services:
+  caddy:
+    image: caddy:2.8
+    container_name: caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    environment:
+      - APP_HOST=${APP_HOST}
+    depends_on:
+      - new-api
+      - payment-bridge
+    networks:
+      - app
+
+  new-api:
+    image: ${NEW_API_IMAGE}
+    container_name: new-api
+    restart: unless-stopped
+    command: --log-dir /app/logs
+    expose:
+      - "3000"
+    volumes:
+      - ./logs/new-api:/app/logs
+      - ./data/new-api:/data
+    environment:
+      - SQL_DSN=${MYSQL_USER}:${MYSQL_PASSWORD}@tcp(mysql:3306)/${MYSQL_DATABASE}?charset=utf8mb4&parseTime=True&loc=Local
+      - REDIS_CONN_STRING=redis://:${REDIS_PASSWORD}@redis:6379
+      - SESSION_SECRET=${NEW_API_SESSION_SECRET}
+      - CRYPTO_SECRET=${NEW_API_CRYPTO_SECRET}
+      - TZ=${TZ}
+      - ERROR_LOG_ENABLED=true
+      - BATCH_UPDATE_ENABLED=true
+      - NODE_NAME=stage-1-sg-1
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://localhost:3000/api/status | grep -o '\"success\":\\s*true' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - app
+
+  payment-bridge:
+    build:
+      context: ../payment-bridge
+    container_name: payment-bridge
+    restart: unless-stopped
+    expose:
+      - "8080"
+    environment:
+      - PORT=8080
+      - DATABASE_URL=mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql:3306/${MYSQL_DATABASE}
+      - NEW_API_BASE_URL=http://new-api:3000
+      - NEW_API_ADMIN_ACCESS_TOKEN=${NEW_API_ADMIN_ACCESS_TOKEN}
+      - NEW_API_QUOTA_PER_USD=${NEW_API_QUOTA_PER_USD}
+      - NOWPAYMENTS_API_KEY=${NOWPAYMENTS_API_KEY}
+      - NOWPAYMENTS_IPN_SECRET=${NOWPAYMENTS_IPN_SECRET}
+      - NOWPAYMENTS_API_BASE=${NOWPAYMENTS_API_BASE}
+      - PAYMENT_PUBLIC_BASE_URL=${PAYMENT_PUBLIC_BASE_URL}
+      - RECHARGE_ALLOWED_AMOUNTS=${RECHARGE_ALLOWED_AMOUNTS}
+      - RECHARGE_CURRENCY=${RECHARGE_CURRENCY}
+      - RECHARGE_CREDIT_MULTIPLIER=${RECHARGE_CREDIT_MULTIPLIER}
+      - TZ=${TZ}
+    depends_on:
+      mysql:
+        condition: service_healthy
+      new-api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://localhost:8080/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - app
+
+  mysql:
+    image: mysql:8.4
+    container_name: mysql
+    restart: unless-stopped
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    environment:
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - TZ=${TZ}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u${MYSQL_USER} -p${MYSQL_PASSWORD} --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    networks:
+      - app
+
+  redis:
+    image: redis:7.4-alpine
+    container_name: redis
+    restart: unless-stopped
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    networks:
+      - app
+
+volumes:
+  mysql_data:
+  redis_data:
+  caddy_data:
+  caddy_config:
+
+networks:
+  app:
+    driver: bridge

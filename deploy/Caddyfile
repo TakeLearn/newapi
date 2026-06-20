@@ -1,0 +1,20 @@
+{
+	email admin@{$APP_HOST}
+}
+
+{$APP_HOST} {
+	encode zstd gzip
+
+	handle /payment/* {
+		reverse_proxy payment-bridge:8080
+	}
+
+	handle /health/payment {
+		rewrite * /health
+		reverse_proxy payment-bridge:8080
+	}
+
+	handle {
+		reverse_proxy new-api:3000
+	}
+}

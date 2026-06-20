@@ -149,7 +149,6 @@ APP_HOST=api.example.com
 
 # New API
 NEW_API_IMAGE=calciumion/new-api:latest
-NEW_API_PORT=3000
 NEW_API_SESSION_SECRET=replace-with-64-char-random-string
 NEW_API_CRYPTO_SECRET=replace-with-32-char-random-string
 NEW_API_ADMIN_ACCESS_TOKEN=replace-with-new-api-admin-access-token
@@ -165,7 +164,6 @@ MYSQL_ROOT_PASSWORD=replace-with-random-root-password
 REDIS_PASSWORD=replace-with-random-redis-password
 
 # Payment bridge
-PAYMENT_BRIDGE_PORT=8080
 PAYMENT_BRIDGE_SESSION_SECRET=replace-with-64-char-random-string
 NOWPAYMENTS_API_KEY=replace-with-nowpayments-api-key
 NOWPAYMENTS_IPN_SECRET=replace-with-nowpayments-ipn-secret
@@ -246,7 +244,7 @@ services:
     expose:
       - "8080"
     environment:
-      - PORT=${PAYMENT_BRIDGE_PORT}
+      - PORT=8080
       - DATABASE_URL=mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql:3306/${MYSQL_DATABASE}
       - NEW_API_BASE_URL=http://new-api:3000
       - NEW_API_ADMIN_ACCESS_TOKEN=${NEW_API_ADMIN_ACCESS_TOKEN}
