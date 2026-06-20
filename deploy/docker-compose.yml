@@ -19,6 +19,9 @@ services:
       - app
 
   new-api:
+    build:
+      context: ../new-api-src
+      dockerfile: ../deploy/Dockerfile.new-api-local
     image: ${NEW_API_IMAGE}
     container_name: new-api
     restart: unless-stopped

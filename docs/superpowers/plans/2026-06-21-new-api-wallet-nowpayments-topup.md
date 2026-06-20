@@ -4,7 +4,7 @@
 
 **Goal:** Add a native USDT-TRC20 NOWPayments recharge entry to the New API classic wallet page and deploy it through a custom New API image.
 
-**Architecture:** The wallet UI will call the existing same-origin `POST /payment/create` endpoint exposed by Caddy and backed by `payment-bridge`. A new focused React component will live beside existing top-up components and read the current user ID from the existing `userState` prop already passed into `RechargeCard`.
+**Architecture:** The wallet UI will call the existing same-origin `POST /payment/create` endpoint exposed by Caddy and backed by `payment-bridge`. A new focused React component will live beside existing top-up components and read the current user ID from the existing `userState` prop already passed into `RechargeCard`. Because `new-api-src/` is an ignored upstream checkout, New API source changes are committed to this repo as reproducible patch files under `patches/new-api/` and applied to a local or server checkout before building the custom image.
 
 **Tech Stack:** New API classic React frontend, `@douyinfe/semi-ui`, existing i18next translation files, existing `API` axios helper, Docker Compose, custom New API Docker image built from `new-api-src`.
 
@@ -28,6 +28,10 @@
   - Documents the custom image value used by the Stage 1 testing deployment.
 - Modify: `docs/operations/stage-1-runbook.md`
   - Adds the wallet top-up verification steps.
+- Create: `patches/new-api/0001-wallet-nowpayments-topup.patch`
+  - Portable patch containing all New API source changes.
+- Create: `scripts/apply-new-api-patches.sh`
+  - Applies the tracked patches to `new-api-src/` locally or on the server.
 
 ## Task 1: Add NOWPayments Wallet Component
 
@@ -177,12 +181,14 @@ bun run build
 
 Expected: build may take several minutes; it should complete without JSX syntax errors. If dependencies are missing locally, run the full Docker build in Task 6 instead.
 
-- [ ] **Step 3: Commit**
+- [ ] **Step 3: Leave source change uncommitted in upstream checkout**
 
 ```bash
-git add new-api-src/web/classic/src/components/topup/NowPaymentsTopUpCard.jsx
-git commit -m "feat: add nowpayments wallet topup card"
+cd new-api-src
+git status --short
 ```
+
+Expected: the new file appears in the upstream checkout. Do not commit inside `new-api-src`; Task 4 creates and commits a root-repo patch file instead.
 
 ## Task 2: Render The Card On Wallet Page
 
@@ -218,12 +224,14 @@ bun run build
 
 Expected: PASS with no `NowPaymentsTopUpCard` import errors.
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 4: Leave source change uncommitted in upstream checkout**
 
 ```bash
-git add new-api-src/web/classic/src/components/topup/RechargeCard.jsx
-git commit -m "feat: show nowpayments topup in wallet"
+cd new-api-src
+git status --short
 ```
+
+Expected: `RechargeCard.jsx` and the new card file appear in the upstream checkout. Do not commit inside `new-api-src`; Task 4 creates and commits a root-repo patch file instead.
 
 ## Task 3: Add English And Chinese Translations
 
@@ -280,20 +288,92 @@ Expected:
 i18n json ok
 ```
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 4: Leave source change uncommitted in upstream checkout**
 
 ```bash
-git add new-api-src/web/classic/src/i18n/locales/en.json new-api-src/web/classic/src/i18n/locales/zh-CN.json new-api-src/web/classic/src/i18n/locales/zh.json
-git commit -m "feat: add nowpayments topup translations"
+cd new-api-src
+git status --short
 ```
 
-## Task 4: Configure Custom New API Image Build
+Expected: the three locale files appear in the upstream checkout. Do not commit inside `new-api-src`; Task 4 creates and commits a root-repo patch file instead.
+
+## Task 4: Create Patch Workflow And Configure Custom New API Image Build
 
 **Files:**
+- Create: `patches/new-api/0001-wallet-nowpayments-topup.patch`
+- Create: `scripts/apply-new-api-patches.sh`
 - Modify: `deploy/docker-compose.yml`
 - Modify: `deploy/.env.example`
 
-- [ ] **Step 1: Make `new-api` buildable from local source**
+- [ ] **Step 1: Create patch directory**
+
+Run:
+
+```bash
+mkdir -p patches/new-api
+```
+
+- [ ] **Step 2: Generate the New API source patch**
+
+Run:
+
+```bash
+cd new-api-src
+git diff --binary -- web/classic/src/components/topup/RechargeCard.jsx web/classic/src/i18n/locales/en.json web/classic/src/i18n/locales/zh-CN.json web/classic/src/i18n/locales/zh.json > ../patches/new-api/0001-wallet-nowpayments-topup.patch
+git diff --binary --cached -- web/classic/src/components/topup/NowPaymentsTopUpCard.jsx >> ../patches/new-api/0001-wallet-nowpayments-topup.patch
+```
+
+If the new component is still untracked, add it temporarily to the upstream index before generating the second diff:
+
+```bash
+cd new-api-src
+git add web/classic/src/components/topup/NowPaymentsTopUpCard.jsx
+git diff --binary --cached -- web/classic/src/components/topup/NowPaymentsTopUpCard.jsx >> ../patches/new-api/0001-wallet-nowpayments-topup.patch
+git reset -- web/classic/src/components/topup/NowPaymentsTopUpCard.jsx
+```
+
+Expected: `patches/new-api/0001-wallet-nowpayments-topup.patch` contains changes for the new component, `RechargeCard.jsx`, and locale files.
+
+- [ ] **Step 3: Create patch apply script**
+
+Create `scripts/apply-new-api-patches.sh`:
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+NEW_API_DIR="${NEW_API_DIR:-$ROOT_DIR/new-api-src}"
+PATCH_DIR="$ROOT_DIR/patches/new-api"
+
+if ! git -C "$NEW_API_DIR" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  echo "New API checkout not found at $NEW_API_DIR" >&2
+  echo "Clone https://github.com/QuantumNous/new-api.git into new-api-src first." >&2
+  exit 1
+fi
+
+cd "$NEW_API_DIR"
+
+for patch in "$PATCH_DIR"/*.patch; do
+  [[ -e "$patch" ]] || continue
+  echo "Applying $(basename "$patch")"
+  if git apply --check "$patch" >/dev/null 2>&1; then
+    git apply --3way "$patch"
+  elif git apply --reverse --check "$patch" >/dev/null 2>&1; then
+    echo "Skipping $(basename "$patch"); already applied"
+  else
+    git apply --3way "$patch"
+  fi
+done
+```
+
+Make it executable:
+
+```bash
+chmod +x scripts/apply-new-api-patches.sh
+```
+
+- [ ] **Step 4: Make `new-api` buildable from local source**
 
 In `deploy/docker-compose.yml`, change the `new-api` service from:
 
@@ -314,7 +394,7 @@ to:
 
 This preserves the image name while allowing `docker compose build new-api` to build the custom source image.
 
-- [ ] **Step 2: Update environment example**
+- [ ] **Step 5: Update environment example**
 
 In `deploy/.env.example`, change:
 
@@ -331,10 +411,11 @@ NEW_API_IMAGE=new-api-stage1-custom:wallet-nowpayments
 Add this comment directly above it:
 
 ```dotenv
-# Custom Stage 1 image built from ../new-api-src. Use the pinned upstream digest only when deploying without local source modifications.
+# Custom Stage 1 image built from ../new-api-src by deploy/docker-compose.yml.
+# To deploy an upstream pinned image without local source modifications, remove or override the new-api build block too.
 ```
 
-- [ ] **Step 3: Validate compose config**
+- [ ] **Step 6: Validate compose config**
 
 Run:
 
@@ -346,11 +427,11 @@ tail -20 /tmp/newapi-compose-config.out
 
 Expected: command exits 0 and includes `new-api-stage1-custom:wallet-nowpayments` when `.env` has the same value.
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
-git add deploy/docker-compose.yml deploy/.env.example
-git commit -m "chore: build custom new api image"
+git add patches/new-api/0001-wallet-nowpayments-topup.patch scripts/apply-new-api-patches.sh deploy/docker-compose.yml deploy/.env.example
+git commit -m "chore: add new api wallet topup patch workflow"
 ```
 
 ## Task 5: Update Runbook
@@ -408,6 +489,7 @@ git commit -m "docs: add wallet topup verification"
 Run:
 
 ```bash
+./scripts/apply-new-api-patches.sh
 cd deploy
 docker compose build new-api
 ```
@@ -473,10 +555,12 @@ Run on the server:
 ```bash
 cd /opt/api
 git pull --ff-only
+git -C new-api-src rev-parse --is-inside-work-tree >/dev/null 2>&1 || git clone https://github.com/QuantumNous/new-api.git new-api-src
+./scripts/apply-new-api-patches.sh
 git log --oneline --max-count=5
 ```
 
-Expected: latest commits include the wallet top-up feature and docs commits.
+Expected: latest root repo commits include the wallet top-up patch workflow and docs commits. `new-api-src` has the patch applied.
 
 - [ ] **Step 3: Set custom image name**
 
