@@ -988,10 +988,11 @@ import { addUserQuota } from './newApiClient.js';
 import { createNowpaymentsInvoice, isValidIpnSignature } from './nowpayments.js';
 import {
   attachInvoice,
+  claimCreditOnce,
   createPendingOrder,
   findOrderForIpn,
   isFinalPaidStatus,
-  markCreditedOnce,
+  markCredited,
   markIpnObserved
 } from './orders.js';
 
@@ -1067,13 +1068,14 @@ export function createServer({ config, pool }) {
       return;
     }
 
-    const shouldCredit = await markCreditedOnce(pool, order.id);
+    const shouldCredit = await claimCreditOnce(pool, order.id);
     if (shouldCredit) {
       await addUserQuota({
         config,
         userId: Number(order.user_id),
         quota: Number(order.quota_to_add)
       });
+      await markCredited(pool, order.id);
     }
 
     res.json({ success: true, data: { credited: shouldCredit } });

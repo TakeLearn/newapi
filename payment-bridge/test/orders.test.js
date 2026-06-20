@@ -5,7 +5,8 @@ import {
   findOrderForIpn,
   isAllowedAmount,
   isFinalPaidStatus,
-  markCredited
+  markCredited,
+  releaseCreditClaim
 } from '../src/orders.js';
 import { ensurePaymentOrderConstraints, runMigrations } from '../src/migrations.js';
 import * as ordersModule from '../src/orders.js';
@@ -77,6 +78,21 @@ describe('order policy', () => {
     };
 
     await expect(markCredited(pool, 'order_a')).resolves.toBe(true);
+    expect(calls[0].sql).toContain("status = 'crediting'");
+    expect(calls[0].sql).toContain('credited_at IS NULL');
+  });
+
+  it('releases a credit claim back to pending for retry', async () => {
+    const calls = [];
+    const pool = {
+      async query(sql, params) {
+        calls.push({ sql, params });
+        return [{ affectedRows: 1 }];
+      }
+    };
+
+    await expect(releaseCreditClaim(pool, 'order_a')).resolves.toBe(true);
+    expect(calls[0].sql).toContain("SET status = 'pending'");
     expect(calls[0].sql).toContain("status = 'crediting'");
     expect(calls[0].sql).toContain('credited_at IS NULL');
   });
