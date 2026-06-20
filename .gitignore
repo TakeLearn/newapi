@@ -1,0 +1,30 @@
+# Secrets and local env files
+.env
+.env.*
+!.env.example
+deploy/.env
+deploy/.env.local
+deploy/.env.staging
+deploy/.env.production
+
+# Runtime data
+deploy/data/
+deploy/logs/
+deploy/mysql/
+deploy/redis/
+caddy_data/
+caddy_config/
+
+# Node
+node_modules/
+npm-debug.log*
+coverage/
+
+# OS/editor
+.DS_Store
+.idea/
+.vscode/
+
+# Temporary files
+tmp/
+*.log

@@ -44,7 +44,17 @@ This stage uses New API as the operational base instead of building a custom gat
 
 ## Infrastructure
 
-The first server will be:
+Stage 1 uses three environments before public launch:
+
+```text
+Local Mac
+  -> Tencent Cloud Lighthouse staging server
+  -> Hetzner Singapore production server
+```
+
+Local Mac is used for development and repeatable Docker Compose validation. MySQL and Redis run in Docker locally, not as native Mac services. Tencent Cloud Lighthouse is used as a public staging server for HTTPS, webhook, restart, backup, and deployment testing. Hetzner Singapore is the production server once the full business loop passes staging.
+
+The production server will be:
 
 - Provider: Hetzner Cloud
 - Region: Singapore
@@ -64,6 +74,8 @@ Temporary HTTPS domain
 ```
 
 Cloudflare is deferred until the formal domain is purchased. Once the formal domain exists, it should sit in front of Caddy for DNS, proxying, WAF, bot protection, and basic DDoS protection.
+
+The New API Docker image must not remain on `latest` for production. The implementation should first validate a current image locally and on staging, then pin production to a specific tag or image digest.
 
 ## Payment Flow
 
@@ -190,9 +202,11 @@ Stage 3 reduces dependence on New API:
 ## Decisions
 
 - The first implementation path is Scheme A: deploy New API mostly as-is and add only the payment bridge needed for USDT recharge.
+- The rollout path is Local Mac, then Tencent Cloud staging, then Hetzner Singapore production.
 - The first region is Hetzner Singapore.
 - The first server size is 4 vCPU / 8 GB RAM.
 - The first database is MySQL 8.
 - The first payment processor is NOWPayments.
 - The only first payment asset is USDT-TRC20.
 - The first provider set is DeepSeek, Kimi/Moonshot, OpenAI, and Anthropic Claude API.
+- The production New API image will be pinned after local and staging validation.

@@ -6,7 +6,7 @@
 
 **Architecture:** Use New API as the main gateway and admin console. Run New API, MySQL, Redis, Caddy, and a small Node.js payment bridge on one Hetzner Singapore VPS using Docker Compose. The payment bridge owns NOWPayments orders and IPN verification, then credits New API users through the New API admin user management API.
 
-**Tech Stack:** Hetzner Cloud, Ubuntu 24.04 LTS, Docker Compose, New API (`calciumion/new-api:latest`), MySQL 8, Redis 7, Caddy 2, Node.js 22, Express, mysql2, Zod, Vitest, NOWPayments API.
+**Tech Stack:** Mac Docker Desktop for local validation, Tencent Cloud Lighthouse for staging, Hetzner Cloud Singapore for production, Ubuntu 24.04 LTS, Docker Compose, New API (`calciumion/new-api` pinned to a validated tag or digest before production), MySQL 8, Redis 7, Caddy 2, Node.js 22, Express, mysql2, Zod, Vitest, NOWPayments API.
 
 ---
 
@@ -59,6 +59,8 @@
 - NOWPayments IPN signature secret must be non-empty. The bridge must refuse to start if `NOWPAYMENTS_IPN_SECRET` is empty.
 - Only fixed amounts `10`, `25`, `50`, and `100` are accepted.
 - Only USDT-TRC20 is accepted.
+- Rollout is local Mac first, Tencent Cloud Lighthouse staging second, and Hetzner Singapore production last.
+- `calciumion/new-api:latest` can be used only during initial local discovery. Before staging acceptance, replace `NEW_API_IMAGE` with a validated tag or digest such as `calciumion/new-api@sha256:$NEW_API_IMAGE_DIGEST`.
 
 ## Task 1: Initialize Repository Hygiene
 
@@ -75,6 +77,9 @@ Create `.gitignore`:
 .env.*
 !.env.example
 deploy/.env
+deploy/.env.local
+deploy/.env.staging
+deploy/.env.production
 
 # Runtime data
 deploy/data/
@@ -1137,11 +1142,11 @@ Create `deploy/README.md`:
 ```markdown
 # Stage 1 Deployment
 
-## Server
+## Environments
 
-- Hetzner Cloud Singapore
-- 4 vCPU / 8 GB RAM
-- Ubuntu 24.04 LTS
+- Local Mac: Docker Desktop, MySQL and Redis in Docker.
+- Tencent Cloud Lighthouse staging: public webhook and restart testing.
+- Hetzner Cloud Singapore production: 4 vCPU / 8 GB RAM, Ubuntu 24.04 LTS.
 
 ## Initial Server Setup
 
@@ -1165,14 +1170,14 @@ ufw --force enable
 
 ```bash
 export SERVER_IP=203.0.113.10
-rsync -az --exclude .git --exclude deploy/.env /Users/Admin/Desktop/api/ root@$SERVER_IP:/opt/api/
+rsync -az --exclude .git --exclude deploy/.env --exclude node_modules /Users/Admin/Desktop/api/ root@$SERVER_IP:/opt/api/
 ssh root@$SERVER_IP
 cd /opt/api/deploy
 cp .env.example .env
 openssl rand -hex 32
 ```
 
-Edit `.env` and set every `replace-with-*` value before starting services.
+Edit `.env` and set every `replace-with-*` value before starting services. Use separate `.env` values for staging and production; do not copy staging secrets into production.
 
 ## Start
 
@@ -1417,17 +1422,77 @@ git commit -m "fix: resolve local mvp validation issues"
 
 Expected: commit succeeds only if files changed.
 
-## Task 11: Production Server Execution
+## Task 11: Pin Validated New API Image
 
 **Files:**
-- No repository changes expected unless production reveals config errors.
+- Modify: `deploy/.env.example`
+- Modify only if validation reveals image issues: `deploy/docker-compose.yml`
+
+- [ ] **Step 1: Pull and inspect the candidate image**
+
+Run:
+
+```bash
+docker pull calciumion/new-api:latest
+docker image inspect calciumion/new-api:latest --format '{{index .RepoDigests 0}}'
+```
+
+Expected: output looks like:
+
+```text
+calciumion/new-api@sha256:...
+```
+
+- [ ] **Step 2: Update image reference template**
+
+Edit `deploy/.env.example` and replace:
+
+```dotenv
+NEW_API_IMAGE=calciumion/new-api:latest
+```
+
+with:
+
+```dotenv
+NEW_API_IMAGE=calciumion/new-api@sha256:replace-with-validated-image-digest
+```
+
+- [ ] **Step 3: Validate Compose still accepts the digest form**
+
+Run:
+
+```bash
+cd deploy
+cp .env.example .env
+NEW_API_IMAGE_DIGEST="$(docker image inspect calciumion/new-api:latest --format '{{index .RepoDigests 0}}' | sed 's/^calciumion\\/new-api@sha256://')"
+perl -0pi -e "s/replace-with-validated-image-digest/$ENV{NEW_API_IMAGE_DIGEST}/" .env
+docker compose config >/tmp/new-api-mvp-compose-pinned.yml
+```
+
+Expected: exits successfully and `NEW_API_IMAGE` in the rendered config uses `calciumion/new-api@sha256:...`.
+
+- [ ] **Step 4: Commit**
+
+Run:
+
+```bash
+git add deploy/.env.example deploy/docker-compose.yml
+git commit -m "chore: pin new api image template"
+```
+
+Expected: commit succeeds.
+
+## Task 12: Tencent Cloud Staging Execution
+
+**Files:**
+- No repository changes expected unless staging reveals config errors.
 
 - [ ] **Step 1: Provision server**
 
-Create a Hetzner Cloud server:
+Use the existing Tencent Cloud Lighthouse server as staging:
 
 ```text
-Location: Singapore
+Provider: Tencent Cloud Lighthouse
 Image: Ubuntu 24.04
 Size: 4 vCPU / 8 GB RAM
 SSH: key-only login
@@ -1449,7 +1514,7 @@ show Docker, Compose, and active firewall rules for SSH, 80, and 443.
 
 - [ ] **Step 3: Deploy repository**
 
-Copy or clone this repository to:
+Copy this repository to staging:
 
 ```text
 /opt/api
@@ -1458,11 +1523,14 @@ Copy or clone this repository to:
 Then run:
 
 ```bash
+export STAGING_IP=203.0.113.20
+rsync -az --exclude .git --exclude deploy/.env --exclude node_modules /Users/Admin/Desktop/api/ root@$STAGING_IP:/opt/api/
+ssh root@$STAGING_IP
 cd /opt/api/deploy
 cp .env.example .env
 ```
 
-Edit `.env` with production secrets, the temporary HTTPS hostname, and NOWPayments credentials.
+Edit `.env` with staging secrets, the temporary HTTPS hostname, and NOWPayments credentials.
 
 - [ ] **Step 4: Start services**
 
@@ -1519,7 +1587,112 @@ Expected:
 MVP smoke checks passed.
 ```
 
-## Task 12: Commercial Loop Acceptance Test
+- [ ] **Step 8: Fix and commit staging issues**
+
+If staging reveals repository changes, make the changes locally, commit them, push them, and redeploy to staging.
+
+Expected: staging passes the smoke script before production execution begins.
+
+## Task 13: Hetzner Production Execution
+
+**Files:**
+- No repository changes expected unless production reveals config errors.
+
+- [ ] **Step 1: Provision production server**
+
+Create a Hetzner Cloud server:
+
+```text
+Location: Singapore
+Image: Ubuntu 24.04
+Size: 4 vCPU / 8 GB RAM
+SSH: key-only login
+```
+
+- [ ] **Step 2: Install Docker and firewall**
+
+Run the commands from `deploy/README.md` under "Initial Server Setup".
+
+Expected:
+
+```bash
+docker --version
+docker compose version
+ufw status
+```
+
+show Docker, Compose, and active firewall rules for SSH, 80, and 443.
+
+- [ ] **Step 3: Deploy repository**
+
+Copy this repository to production:
+
+```bash
+export PROD_IP=203.0.113.30
+rsync -az --exclude .git --exclude deploy/.env --exclude node_modules /Users/Admin/Desktop/api/ root@$PROD_IP:/opt/api/
+ssh root@$PROD_IP
+cd /opt/api/deploy
+cp .env.example .env
+```
+
+Edit `.env` with production secrets, the production temporary HTTPS hostname, and NOWPayments credentials.
+
+- [ ] **Step 4: Start services**
+
+Run:
+
+```bash
+cd /opt/api/deploy
+docker compose up -d --build
+docker compose ps
+```
+
+Expected: `new-api`, `mysql`, `redis`, `payment-bridge`, and `caddy` are running or healthy.
+
+- [ ] **Step 5: Complete New API admin setup**
+
+Open:
+
+```text
+https://$APP_HOST
+```
+
+Create the root admin account. Generate or copy a dedicated admin access token for the payment bridge, place it in `NEW_API_ADMIN_ACCESS_TOKEN`, then restart:
+
+```bash
+cd /opt/api/deploy
+docker compose up -d payment-bridge
+```
+
+- [ ] **Step 6: Configure provider channels**
+
+In New API admin, configure:
+
+```text
+DeepSeek
+Kimi / Moonshot
+OpenAI
+Anthropic Claude API
+```
+
+Set conservative user and model limits before accepting public users.
+
+- [ ] **Step 7: Run smoke script**
+
+Run:
+
+```bash
+cd /opt/api
+./scripts/verify-mvp.sh "https://$APP_HOST"
+```
+
+Expected:
+
+```text
+MVP smoke checks passed.
+```
+
+## Task 14: Commercial Loop Acceptance Test
 
 **Files:**
 - No repository changes expected unless acceptance reveals implementation bugs.
@@ -1642,7 +1815,8 @@ Expected: commit succeeds only if files changed.
 
 ## Self-Review
 
-- Spec coverage: The plan covers single-node Hetzner deployment, Docker Compose, MySQL, Redis, Caddy, temporary HTTPS host, NOWPayments USDT-TRC20, fixed recharge amounts, automatic crediting, four provider families, basic abuse controls, and operational checks.
+- Spec coverage: The plan covers local Mac validation, Tencent Cloud Lighthouse staging, single-node Hetzner production deployment, Docker Compose, MySQL, Redis, Caddy, temporary HTTPS host, NOWPayments USDT-TRC20, fixed recharge amounts, automatic crediting, four provider families, basic abuse controls, and operational checks.
 - Scope control: Stripe, formal website, Cloudflare, Kubernetes, multi-region routing, and custom gateway replacement remain out of scope.
 - Placeholder scan: No task uses open-ended implementation placeholders; code and commands are specified where implementation is required.
-- Risk note: New API admin access-token behavior must be verified on the deployed version during Task 6 and Task 11. If access-token auth differs, use the documented New API admin token method for that version and update `payment-bridge/src/newApiClient.js`.
+- Risk note: New API admin access-token behavior must be verified on the deployed version during Task 6 and staging execution. If access-token auth differs, use the documented New API admin token method for that version and update `payment-bridge/src/newApiClient.js`.
+- Release note: `NEW_API_IMAGE` must be pinned to a validated tag or digest before production execution.
