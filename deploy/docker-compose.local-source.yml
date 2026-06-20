@@ -1,0 +1,112 @@
+services:
+  new-api-source:
+    build:
+      context: ../new-api-src
+      dockerfile: ../deploy/Dockerfile.new-api-local
+    image: new-api-source:local
+    container_name: new-api-source
+    restart: unless-stopped
+    command: --log-dir /app/logs
+    ports:
+      - "3000:3000"
+    volumes:
+      - local_source_data:/data
+      - ./logs/new-api-source:/app/logs
+    environment:
+      - SQL_DSN=root:local_new_api_root_password@tcp(new-api-source-mysql:3306)/new_api?charset=utf8mb4&parseTime=True&loc=Local
+      - REDIS_CONN_STRING=redis://:local_new_api_redis_password@new-api-source-redis:6379
+      - SESSION_SECRET=local-source-session-secret-change-before-public-use
+      - TZ=Asia/Shanghai
+      - ERROR_LOG_ENABLED=true
+      - BATCH_UPDATE_ENABLED=true
+      - NODE_NAME=local-source-debug
+    depends_on:
+      new-api-source-mysql:
+        condition: service_healthy
+      new-api-source-redis:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://localhost:3000/api/status | grep -o '\"success\":\\s*true' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - local-source
+
+  new-api-source-mysql:
+    image: mysql:8.4
+    container_name: new-api-source-mysql
+    restart: unless-stopped
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    ports:
+      - "3308:3306"
+    environment:
+      - MYSQL_DATABASE=new_api
+      - MYSQL_ROOT_PASSWORD=local_new_api_root_password
+      - TZ=Asia/Shanghai
+    volumes:
+      - local_source_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -plocal_new_api_root_password --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    networks:
+      - local-source
+
+  new-api-source-redis:
+    image: redis:7.4-alpine
+    container_name: new-api-source-redis
+    restart: unless-stopped
+    command: ["redis-server", "--requirepass", "local_new_api_redis_password", "--appendonly", "yes"]
+    ports:
+      - "6381:6379"
+    volumes:
+      - local_source_redis_data:/data
+    networks:
+      - local-source
+
+  payment-bridge-local:
+    build:
+      context: ../payment-bridge
+    container_name: payment-bridge-local
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - DATABASE_URL=mysql://root:local_new_api_root_password@new-api-source-mysql:3306/new_api
+      - NEW_API_BASE_URL=http://new-api-source:3000
+      - NEW_API_ADMIN_ACCESS_TOKEN=local-new-api-admin-token-placeholder
+      - NEW_API_QUOTA_PER_USD=500000
+      - NOWPAYMENTS_API_KEY=local-nowpayments-api-key-placeholder
+      - NOWPAYMENTS_IPN_SECRET=local-nowpayments-ipn-secret-placeholder
+      - NOWPAYMENTS_API_BASE=https://api.nowpayments.io/v1
+      - PAYMENT_PUBLIC_BASE_URL=http://localhost:8080
+      - RECHARGE_ALLOWED_AMOUNTS=10,25,50,100
+      - RECHARGE_CURRENCY=USDTTRC20
+      - RECHARGE_CREDIT_MULTIPLIER=1
+      - TZ=Asia/Shanghai
+    depends_on:
+      new-api-source-mysql:
+        condition: service_healthy
+      new-api-source:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://localhost:8080/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - local-source
+
+volumes:
+  local_source_data:
+  local_source_mysql_data:
+  local_source_redis_data:
+
+networks:
+  local-source:
+    driver: bridge

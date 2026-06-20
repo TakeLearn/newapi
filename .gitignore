@@ -20,6 +20,9 @@ node_modules/
 npm-debug.log*
 coverage/
 
+# Upstream source checkout for local debugging
+new-api-src/
+
 # OS/editor
 .DS_Store
 .idea/
