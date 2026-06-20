@@ -78,6 +78,7 @@ Edit `.env` and set every `replace-with-*` value before starting services. Confi
 - `PAYMENT_PUBLIC_BASE_URL`
 - `NEW_API_IMAGE`
 - `NEW_API_ADMIN_ACCESS_TOKEN`
+- `NEW_API_ADMIN_USER_ID`
 - `NOWPAYMENTS_API_KEY`
 - `NOWPAYMENTS_IPN_SECRET`
 - MySQL, Redis, session, and crypto secrets
@@ -100,7 +101,7 @@ docker compose logs -f new-api payment-bridge caddy
 2. Complete the first admin setup.
 3. Configure provider channels for DeepSeek, Kimi / Moonshot, OpenAI, and Anthropic Claude API.
 4. Create or copy a dedicated admin access token for the payment bridge.
-5. Set `NEW_API_ADMIN_ACCESS_TOKEN` in `deploy/.env`.
+5. Set `NEW_API_ADMIN_ACCESS_TOKEN` and `NEW_API_ADMIN_USER_ID` in `deploy/.env`.
 6. Restart the payment bridge:
 
 ```bash

@@ -22,7 +22,8 @@ export async function addUserQuota({ config, userId, quota }) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${config.newApiAdminAccessToken}`
+      Authorization: config.newApiAdminAccessToken,
+      'New-Api-User': String(config.newApiAdminUserId)
     },
     body: JSON.stringify({
       id: userId,

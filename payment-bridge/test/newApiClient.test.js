@@ -4,7 +4,8 @@ import { addUserQuota } from '../src/newApiClient.js';
 describe('New API credit client', () => {
   const config = {
     newApiBaseUrl: 'https://new-api.example.com',
-    newApiAdminAccessToken: 'admin-token-123456'
+    newApiAdminAccessToken: 'admin-token-123456',
+    newApiAdminUserId: 1
   };
 
   afterEach(() => {
@@ -28,7 +29,8 @@ describe('New API credit client', () => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: 'Bearer admin-token-123456'
+        Authorization: 'admin-token-123456',
+        'New-Api-User': '1'
       },
       body: JSON.stringify({
         id: 123,

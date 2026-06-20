@@ -56,3 +56,5 @@ docker compose -f docker-compose.local-source.yml up -d --build new-api-source
 ## Payment Bridge Notes
 
 `payment-bridge-local` starts with placeholder NOWPayments and New API admin token values so health checks and migrations work locally. Before testing real recharge crediting, create the New API admin account, generate a dedicated admin access token, then replace `NEW_API_ADMIN_ACCESS_TOKEN` in `deploy/docker-compose.local-source.yml` or override it with a local env file.
+
+New API admin management endpoints expect the raw access token in the `Authorization` header and the admin user ID in the `New-Api-User` header. Keep `NEW_API_ADMIN_USER_ID` aligned with the admin account that owns the access token.

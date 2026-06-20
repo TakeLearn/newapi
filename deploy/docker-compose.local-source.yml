@@ -80,6 +80,7 @@ services:
       - DATABASE_URL=mysql://root:local_new_api_root_password@new-api-source-mysql:3306/new_api
       - NEW_API_BASE_URL=http://new-api-source:3000
       - NEW_API_ADMIN_ACCESS_TOKEN=local-new-api-admin-token-placeholder
+      - NEW_API_ADMIN_USER_ID=1
       - NEW_API_QUOTA_PER_USD=500000
       - NOWPAYMENTS_API_KEY=local-nowpayments-api-key-placeholder
       - NOWPAYMENTS_IPN_SECRET=local-nowpayments-ipn-secret-placeholder
