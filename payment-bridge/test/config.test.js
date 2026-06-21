@@ -15,6 +15,6 @@ describe('payment bridge config', () => {
   it('defaults to recharge amounts that stay above NOWPayments USDT-TRC20 minimum', () => {
     const config = loadConfig(baseEnv);
 
-    expect(config.allowedAmounts).toEqual([20, 25, 50, 100]);
+    expect(config.allowedAmounts).toEqual([20, 30, 50, 100]);
   });
 });

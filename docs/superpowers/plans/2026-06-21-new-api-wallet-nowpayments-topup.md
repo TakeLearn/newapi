@@ -70,7 +70,7 @@ import { showError, showSuccess } from '../../helpers';
 
 const { Text, Title } = Typography;
 
-const TOP_UP_AMOUNTS = [20, 25, 50, 100];
+const TOP_UP_AMOUNTS = [20, 30, 50, 100];
 
 const NowPaymentsTopUpCard = ({ t, userId }) => {
   const [selectedAmount, setSelectedAmount] = useState(TOP_UP_AMOUNTS[0]);
@@ -465,7 +465,7 @@ Confirm:
 
 - The USDT-TRC20 top-up card appears.
 - The UI follows the selected language.
-- Amount buttons show 20, 25, 50, and 100.
+- Amount buttons show 20, 30, 50, and 100.
 - Clicking the payment button creates a NOWPayments invoice.
 - The browser redirects to the invoice URL.
 

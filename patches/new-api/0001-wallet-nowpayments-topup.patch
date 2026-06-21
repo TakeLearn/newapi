@@ -1,6 +1,6 @@
 diff --git a/web/classic/src/components/topup/NowPaymentsTopUpCard.jsx b/web/classic/src/components/topup/NowPaymentsTopUpCard.jsx
 new file mode 100644
-index 00000000..eb244b7c
+index 00000000..ac1b1668
 --- /dev/null
 +++ b/web/classic/src/components/topup/NowPaymentsTopUpCard.jsx
 @@ -0,0 +1,170 @@
@@ -31,7 +31,7 @@ index 00000000..eb244b7c
 +
 +const { Text, Title } = Typography;
 +
-+const TOP_UP_AMOUNTS = [20, 25, 50, 100];
++const TOP_UP_AMOUNTS = [20, 30, 50, 100];
 +
 +function isSafeHttpInvoiceUrl(value) {
 +  const trimmed = (value || '').trim();
