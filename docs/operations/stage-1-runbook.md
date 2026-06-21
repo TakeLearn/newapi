@@ -104,7 +104,7 @@ Confirm:
 
 - The USDT-TRC20 top-up card appears.
 - The UI follows the selected language.
-- Amount buttons show 11, 25, 50, and 100.
+- Amount buttons show 20, 25, 50, and 100.
 - Clicking the payment button creates a NOWPayments invoice.
 - The browser redirects to the invoice URL.
 

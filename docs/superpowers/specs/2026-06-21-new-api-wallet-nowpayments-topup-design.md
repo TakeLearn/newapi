@@ -19,7 +19,7 @@ The first version is for the Stage 1 MVP and must keep the working payment bridg
 - Modify the New API classic wallet/top-up page.
 - Add a NOWPayments recharge card inside the wallet management experience.
 - Use the current logged-in user's ID instead of asking the user to type a user ID.
-- Support fixed amounts: 11, 25, 50, and 100 USDT.
+- Support fixed amounts: 20, 25, 50, and 100 USDT.
 - Use same-origin `POST /payment/create` through Caddy.
 - Redirect the browser to the returned `invoice_url`.
 - Show loading and error states.
