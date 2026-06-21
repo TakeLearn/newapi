@@ -175,7 +175,7 @@ index 00000000..ac1b1668
 +
 +export default NowPaymentsTopUpCard;
 diff --git a/web/classic/src/components/topup/RechargeCard.jsx b/web/classic/src/components/topup/RechargeCard.jsx
-index 4fe2035a..8aa121d2 100644
+index 4fe2035a..8a25f367 100644
 --- a/web/classic/src/components/topup/RechargeCard.jsx
 +++ b/web/classic/src/components/topup/RechargeCard.jsx
 @@ -50,6 +50,7 @@ import { useMinimumLoadingTime } from '../../hooks/common/useMinimumLoadingTime'
@@ -186,7 +186,7 @@ index 4fe2035a..8aa121d2 100644
  
  const { Text } = Typography;
  
-@@ -224,358 +225,358 @@ const RechargeCard = ({
+@@ -224,358 +225,349 @@ const RechargeCard = ({
              </div>
            </div>
          }
@@ -712,7 +712,12 @@ index 4fe2035a..8aa121d2 100644
 +                    const hasDiscount = discount < 1.0;
 +                    const actualPay = discountedPrice;
 +                    const save = originalPrice - discountedPrice;
-+
+ 
+-              {/* Creem 充值区域 */}
+-              {enableCreemTopUp && creemProducts.length > 0 && (
+-                <Form.Slot label={t('Creem 充值')}>
+-                  <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3'>
+-                    {creemProducts.map((product, index) => (
 +                    // 根据当前货币类型换算显示金额和数量
 +                    const { symbol, rate, type } = getCurrencyConfig();
 +                    const statusStr = localStorage.getItem('status');
@@ -741,12 +746,7 @@ index 4fe2035a..8aa121d2 100644
 +                      displayActualPay = (actualPay / usdRate) * rate;
 +                      displaySave = (save / usdRate) * rate;
 +                    }
- 
--              {/* Creem 充值区域 */}
--              {enableCreemTopUp && creemProducts.length > 0 && (
--                <Form.Slot label={t('Creem 充值')}>
--                  <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3'>
--                    {creemProducts.map((product, index) => (
++
 +                    return (
                        <Card
                          key={index}
@@ -828,7 +828,12 @@ index 4fe2035a..8aa121d2 100644
 +                  })}
 +                </div>
 +              </Form.Slot>
-+            )}
+             )}
+-            className='!rounded-xl'
+-            closeIcon={null}
+-          />
+-        )}
+-      </Card>
 +
 +            {/* Creem 充值区域 */}
 +            {enableCreemTopUp && creemProducts.length > 0 && (
@@ -855,24 +860,10 @@ index 4fe2035a..8aa121d2 100644
 +                  ))}
 +                </div>
 +              </Form.Slot>
-             )}
--            className='!rounded-xl'
--            closeIcon={null}
--          />
--        )}
--      </Card>
++            )}
 +          </div>
 +        </Form>
-+      ) : (
-+        <Banner
-+          type='info'
-+          description={t(
-+            '管理员未开启在线充值功能，请联系管理员开启或使用兑换码充值。',
-+          )}
-+          className='!rounded-xl'
-+          closeIcon={null}
-+        />
-+      )}
++      ) : null}
  
        {/* 兑换码充值 */}
        {enableRedemption ? (
