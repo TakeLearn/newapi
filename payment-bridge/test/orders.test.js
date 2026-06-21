@@ -13,19 +13,19 @@ import * as ordersModule from '../src/orders.js';
 
 describe('order policy', () => {
   const config = {
-    allowedAmounts: [10, 25, 50, 100],
+    allowedAmounts: [11, 25, 50, 100],
     newApiQuotaPerUsd: 500000,
     rechargeCreditMultiplier: 1
   };
 
   it('allows only fixed recharge amounts', () => {
-    expect(isAllowedAmount(config, 10)).toBe(true);
+    expect(isAllowedAmount(config, 10)).toBe(false);
+    expect(isAllowedAmount(config, 11)).toBe(true);
     expect(isAllowedAmount(config, 25)).toBe(true);
-    expect(isAllowedAmount(config, 11)).toBe(false);
   });
 
   it('calculates New API quota from USDT amount', () => {
-    expect(calculateQuota(config, 10)).toBe(5000000);
+    expect(calculateQuota(config, 11)).toBe(5500000);
     expect(calculateQuota(config, 100)).toBe(50000000);
   });
 
