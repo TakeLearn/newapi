@@ -1,6 +1,10 @@
 import crypto from 'node:crypto';
-import { describe, expect, it } from 'vitest';
-import { isValidIpnSignature, stableStringify } from '../src/nowpayments.js';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { createNowpaymentsInvoice, isValidIpnSignature, stableStringify } from '../src/nowpayments.js';
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
 
 describe('NOWPayments IPN signature verification', () => {
   it('accepts a valid HMAC-SHA512 signature over stable JSON', () => {
@@ -9,7 +13,7 @@ describe('NOWPayments IPN signature verification', () => {
       payment_id: 'pay_123',
       order_id: 'ord_123',
       payment_status: 'finished',
-      pay_currency: 'usdttrc20',
+      pay_currency: 'usdtbsc',
       actually_paid: 10
     };
     const signature = crypto
@@ -30,5 +34,47 @@ describe('NOWPayments IPN signature verification', () => {
     expect(
       isValidIpnSignature({ payment_id: 'pay_123' }, 'z'.repeat(128), 'test-secret-123456')
     ).toBe(false);
+  });
+});
+
+describe('NOWPayments invoice creation', () => {
+  it('requests a USDT-BSC invoice using the configured recharge currency', async () => {
+    const fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        id: 'invoice_123',
+        invoice_url: 'https://nowpayments.example/invoice_123'
+      })
+    });
+    vi.stubGlobal('fetch', fetch);
+
+    await createNowpaymentsInvoice({
+      config: {
+        nowpaymentsApiBase: 'https://api.nowpayments.example/v1',
+        nowpaymentsApiKey: 'api-key-123',
+        paymentPublicBaseUrl: 'https://api.example.com',
+        rechargeCurrency: 'USDTBSC'
+      },
+      order: {
+        id: 'order_123',
+        amountUsd: 20
+      }
+    });
+
+    expect(fetch).toHaveBeenCalledWith(
+      'https://api.nowpayments.example/v1/invoice',
+      expect.objectContaining({
+        body: expect.any(String)
+      })
+    );
+    expect(JSON.parse(fetch.mock.calls[0][1].body)).toEqual(
+      expect.objectContaining({
+        price_amount: 20,
+        price_currency: 'usd',
+        pay_currency: 'usdtbsc',
+        order_id: 'order_123',
+        ipn_callback_url: 'https://api.example.com/payment/ipn'
+      })
+    );
   });
 });

@@ -102,7 +102,7 @@ https://$APP_HOST/console/topup
 
 Confirm:
 
-- The USDT-TRC20 top-up card appears.
+- The USDT-BSC (BEP20) top-up card appears.
 - The UI follows the selected language.
 - Amount buttons show 20, 30, 50, and 100.
 - Clicking the payment button creates a NOWPayments invoice.

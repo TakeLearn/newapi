@@ -12,9 +12,15 @@ describe('payment bridge config', () => {
     PAYMENT_PUBLIC_BASE_URL: 'https://api.example.com'
   };
 
-  it('defaults to recharge amounts that stay above NOWPayments USDT-TRC20 minimum', () => {
+  it('defaults to recharge amounts that stay above NOWPayments USDT-BSC minimum', () => {
     const config = loadConfig(baseEnv);
 
     expect(config.allowedAmounts).toEqual([20, 30, 50, 100]);
+  });
+
+  it('defaults to the low-fee USDT-BSC recharge currency', () => {
+    const config = loadConfig(baseEnv);
+
+    expect(config.rechargeCurrency).toBe('USDTBSC');
   });
 });

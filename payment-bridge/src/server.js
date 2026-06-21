@@ -75,7 +75,8 @@ export function createServer({ config, pool }) {
       }
 
       const paidCurrency = String(req.body.pay_currency || '').toUpperCase();
-      if (paidCurrency !== config.rechargeCurrency.toUpperCase()) {
+      const expectedCurrency = String(order.currency || config.rechargeCurrency).toUpperCase();
+      if (paidCurrency !== expectedCurrency) {
         res.status(400).json({ success: false, message: 'currency mismatch' });
         return;
       }

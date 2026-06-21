@@ -12,7 +12,7 @@ const envSchema = z.object({
   NOWPAYMENTS_API_BASE: z.string().url().default('https://api.nowpayments.io/v1'),
   PAYMENT_PUBLIC_BASE_URL: z.string().url(),
   RECHARGE_ALLOWED_AMOUNTS: z.string().default('20,30,50,100'),
-  RECHARGE_CURRENCY: z.string().default('USDTTRC20'),
+  RECHARGE_CURRENCY: z.string().default('USDTBSC'),
   RECHARGE_CREDIT_MULTIPLIER: z.coerce.number().positive().default(1)
 });
 

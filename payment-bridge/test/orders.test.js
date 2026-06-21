@@ -127,7 +127,38 @@ describe('order policy', () => {
     await runMigrations(pool);
     expect(queries[0]).toContain('CHECK (amount_usd > 0)');
     expect(queries[0]).toContain('CHECK (quota_to_add > 0)');
+    expect(queries[0]).toContain("CHECK (currency IN ('USDTBSC', 'USDTTRC20'))");
     expect(queries[0]).toContain("CHECK (status IN ('pending', 'crediting', 'credited', 'failed', 'expired'))");
+  });
+
+  it('updates the legacy TRC20-only currency constraint in existing deployments', async () => {
+    const queries = [];
+    const pool = {
+      async query(sql) {
+        queries.push(sql);
+        if (sql.includes('information_schema.TABLE_CONSTRAINTS')) {
+          return [
+            [
+              { CONSTRAINT_NAME: 'chk_payment_orders_amount_usd' },
+              { CONSTRAINT_NAME: 'chk_payment_orders_quota_to_add' },
+              { CONSTRAINT_NAME: 'chk_payment_orders_timestamps' },
+              { CONSTRAINT_NAME: 'chk_payment_orders_currency' },
+              { CONSTRAINT_NAME: 'chk_payment_orders_status' }
+            ]
+          ];
+        }
+        if (sql.includes('information_schema.CHECK_CONSTRAINTS')) {
+          return [[{ CHECK_CLAUSE: "`currency` = 'USDTTRC20'" }]];
+        }
+        return [];
+      }
+    };
+
+    await runMigrations(pool);
+    expect(queries).toContain('ALTER TABLE payment_orders DROP CHECK chk_payment_orders_currency');
+    expect(queries).toContain(
+      "ALTER TABLE payment_orders ADD CONSTRAINT chk_payment_orders_currency CHECK (currency IN ('USDTBSC', 'USDTTRC20'))"
+    );
   });
 
   it('verifies required migration constraints after table creation', async () => {

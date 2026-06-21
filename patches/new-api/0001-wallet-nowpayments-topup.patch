@@ -1,9 +1,9 @@
 diff --git a/web/classic/src/components/topup/NowPaymentsTopUpCard.jsx b/web/classic/src/components/topup/NowPaymentsTopUpCard.jsx
 new file mode 100644
-index 00000000..ac1b1668
+index 00000000..65adb0ab
 --- /dev/null
 +++ b/web/classic/src/components/topup/NowPaymentsTopUpCard.jsx
-@@ -0,0 +1,170 @@
+@@ -0,0 +1,172 @@
 +/*
 +Copyright (C) 2025 QuantumNous
 +
@@ -125,10 +125,12 @@ index 00000000..ac1b1668
 +          </div>
 +          <div>
 +            <Title heading={6} style={{ margin: 0 }}>
-+              {t('USDT-TRC20 Top-up')}
++              {t('USDT-BSC (BEP20) Top-up')}
 +            </Title>
 +            <Text type='tertiary' size='small'>
-+              {t('Pay with USDT-TRC20. Credits are added after network confirmation.')}
++              {t(
++                'Pay with USDT-BSC (BEP20). On Binance, choose BSC / BNB Smart Chain (BEP20). Credits are added after confirmation.'
++              )}
 +            </Text>
 +          </div>
 +        </div>
@@ -166,7 +168,7 @@ index 00000000..ac1b1668
 +          className='!rounded-lg'
 +          icon={<WalletCards size={16} />}
 +        >
-+          {t('Pay with USDT-TRC20')}
++          {t('Pay with USDT-BSC (BEP20)')}
 +        </Button>
 +      </Space>
 +    </div>
@@ -868,16 +870,16 @@ index 4fe2035a..8a25f367 100644
        {/* 兑换码充值 */}
        {enableRedemption ? (
 diff --git a/web/classic/src/i18n/locales/en.json b/web/classic/src/i18n/locales/en.json
-index 6beb1917..275cc347 100644
+index 6beb1917..50129014 100644
 --- a/web/classic/src/i18n/locales/en.json
 +++ b/web/classic/src/i18n/locales/en.json
 @@ -1704,6 +1704,13 @@
      "操作类型": "Operation Type",
      "操练场": "Playground",
      "操练场和聊天功能": "Playground and chat functions",
-+    "USDT-TRC20 Top-up": "USDT-TRC20 Top-up",
-+    "Pay with USDT-TRC20. Credits are added after network confirmation.": "Pay with USDT-TRC20. Credits are added after network confirmation.",
-+    "Pay with USDT-TRC20": "Pay with USDT-TRC20",
++    "USDT-BSC (BEP20) Top-up": "USDT-BSC (BEP20) Top-up",
++    "Pay with USDT-BSC (BEP20). On Binance, choose BSC / BNB Smart Chain (BEP20). Credits are added after confirmation.": "Pay with USDT-BSC (BEP20). On Binance, choose BSC / BNB Smart Chain (BEP20). Credits are added after confirmation.",
++    "Pay with USDT-BSC (BEP20)": "Pay with USDT-BSC (BEP20)",
 +    "Do not close the payment page until the invoice is created.": "Do not close the payment page until the invoice is created.",
 +    "Unable to identify the current user. Please refresh and try again.": "Unable to identify the current user. Please refresh and try again.",
 +    "Unable to create payment invoice.": "Unable to create payment invoice.",
@@ -886,16 +888,16 @@ index 6beb1917..275cc347 100644
      "支付地址": "Payment address",
      "支付失败": "Payment failed",
 diff --git a/web/classic/src/i18n/locales/zh-CN.json b/web/classic/src/i18n/locales/zh-CN.json
-index aa484c52..357593ff 100644
+index aa484c52..e27c25fb 100644
 --- a/web/classic/src/i18n/locales/zh-CN.json
 +++ b/web/classic/src/i18n/locales/zh-CN.json
 @@ -1664,6 +1664,13 @@
      "操作类型": "操作类型",
      "操练场": "操练场",
      "操练场和聊天功能": "操练场和聊天功能",
-+    "USDT-TRC20 Top-up": "USDT-TRC20 充值",
-+    "Pay with USDT-TRC20. Credits are added after network confirmation.": "使用 USDT-TRC20 支付，链上确认后自动到账。",
-+    "Pay with USDT-TRC20": "使用 USDT-TRC20 支付",
++    "USDT-BSC (BEP20) Top-up": "USDT-BSC (BEP20) 充值",
++    "Pay with USDT-BSC (BEP20). On Binance, choose BSC / BNB Smart Chain (BEP20). Credits are added after confirmation.": "使用 USDT-BSC (BEP20) 支付；币安提现请选择 BSC / BNB Smart Chain (BEP20)，链上确认后自动到账。",
++    "Pay with USDT-BSC (BEP20)": "使用 USDT-BSC (BEP20) 支付",
 +    "Do not close the payment page until the invoice is created.": "发票创建完成前请勿关闭页面。",
 +    "Unable to identify the current user. Please refresh and try again.": "无法识别当前用户，请刷新后重试。",
 +    "Unable to create payment invoice.": "无法创建支付发票。",
@@ -904,16 +906,16 @@ index aa484c52..357593ff 100644
      "支付地址": "支付地址",
      "支付失败": "支付失败",
 diff --git a/web/classic/src/i18n/locales/zh.json b/web/classic/src/i18n/locales/zh.json
-index 8f2e6aeb..6a44c01e 100644
+index 8f2e6aeb..aac89786 100644
 --- a/web/classic/src/i18n/locales/zh.json
 +++ b/web/classic/src/i18n/locales/zh.json
 @@ -1149,6 +1149,13 @@
      "操作暂时被禁用": "操作暂时被禁用",
      "操练场": "操练场",
      "操练场和聊天功能": "操练场和聊天功能",
-+    "USDT-TRC20 Top-up": "USDT-TRC20 充值",
-+    "Pay with USDT-TRC20. Credits are added after network confirmation.": "使用 USDT-TRC20 支付，链上确认后自动到账。",
-+    "Pay with USDT-TRC20": "使用 USDT-TRC20 支付",
++    "USDT-BSC (BEP20) Top-up": "USDT-BSC (BEP20) 充值",
++    "Pay with USDT-BSC (BEP20). On Binance, choose BSC / BNB Smart Chain (BEP20). Credits are added after confirmation.": "使用 USDT-BSC (BEP20) 支付；币安提现请选择 BSC / BNB Smart Chain (BEP20)，链上确认后自动到账。",
++    "Pay with USDT-BSC (BEP20)": "使用 USDT-BSC (BEP20) 支付",
 +    "Do not close the payment page until the invoice is created.": "发票创建完成前请勿关闭页面。",
 +    "Unable to identify the current user. Please refresh and try again.": "无法识别当前用户，请刷新后重试。",
 +    "Unable to create payment invoice.": "无法创建支付发票。",

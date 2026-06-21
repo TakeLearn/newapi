@@ -87,7 +87,7 @@ services:
       - NOWPAYMENTS_API_BASE=https://api.nowpayments.io/v1
       - PAYMENT_PUBLIC_BASE_URL=http://localhost:8080
       - RECHARGE_ALLOWED_AMOUNTS=20,30,50,100
-      - RECHARGE_CURRENCY=USDTTRC20
+      - RECHARGE_CURRENCY=USDTBSC
       - RECHARGE_CREDIT_MULTIPLIER=1
       - TZ=Asia/Shanghai
     depends_on:

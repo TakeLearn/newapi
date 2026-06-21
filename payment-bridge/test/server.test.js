@@ -94,7 +94,7 @@ function inject(app, { method, path, headers = {}, body }) {
 describe('payment bridge server routes', () => {
   const config = {
     nowpaymentsIpnSecret: 'test-ipn-secret-123456',
-    rechargeCurrency: 'USDTTRC20'
+    rechargeCurrency: 'USDTBSC'
   };
   const pool = { query: vi.fn().mockResolvedValue([{ affectedRows: 1 }]) };
 
@@ -108,7 +108,7 @@ describe('payment bridge server routes', () => {
       userId: 42,
       amountUsd: 25,
       quotaToAdd: 12500000,
-      currency: 'USDTTRC20'
+      currency: 'USDTBSC'
     });
     createNowpaymentsInvoice.mockResolvedValue({
       id: 'invoice_123',
@@ -132,7 +132,7 @@ describe('payment bridge server routes', () => {
       data: {
         order_id: 'order_123',
         amount: 25,
-        currency: 'USDTTRC20',
+        currency: 'USDTBSC',
         invoice_url: 'https://nowpayments.example/invoice_123',
         nowpayments_invoice_id: 'invoice_123'
       }
@@ -191,7 +191,8 @@ describe('payment bridge server routes', () => {
       id: 'order_123',
       user_id: 42,
       amount_usd: 25,
-      quota_to_add: 12500000
+      quota_to_add: 12500000,
+      currency: 'USDTBSC'
     });
     markIpnObserved.mockResolvedValue();
     claimCreditOnce.mockResolvedValue(true);
@@ -206,7 +207,7 @@ describe('payment bridge server routes', () => {
       body: {
         order_id: 'order_123',
         payment_status: 'finished',
-        pay_currency: 'usdttrc20',
+        pay_currency: 'usdtbsc',
         actually_paid: 25
       }
     });
@@ -230,6 +231,42 @@ describe('payment bridge server routes', () => {
     );
   });
 
+  it('validates final paid IPN currency against the stored order currency', async () => {
+    isValidIpnSignature.mockReturnValue(true);
+    findOrderForIpn.mockResolvedValue({
+      id: 'legacy_order_123',
+      user_id: 42,
+      amount_usd: 25,
+      quota_to_add: 12500000,
+      currency: 'USDTTRC20'
+    });
+    markIpnObserved.mockResolvedValue();
+    claimCreditOnce.mockResolvedValue(true);
+    addUserQuota.mockResolvedValue({ success: true });
+    markCredited.mockResolvedValue(true);
+
+    const app = createServer({ config, pool });
+    const response = await inject(app, {
+      method: 'POST',
+      path: '/payment/ipn',
+      headers: { 'x-nowpayments-sig': 'valid-signature' },
+      body: {
+        order_id: 'legacy_order_123',
+        payment_status: 'finished',
+        pay_currency: 'USDTTRC20',
+        actually_paid: 25
+      }
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ success: true, data: { credited: true } });
+    expect(addUserQuota).toHaveBeenCalledWith({
+      config,
+      userId: 42,
+      quota: 12500000
+    });
+  });
+
   it('does not mark credited when New API quota crediting fails', async () => {
     isValidIpnSignature.mockReturnValue(true);
     findOrderForIpn.mockResolvedValue({
@@ -251,7 +288,7 @@ describe('payment bridge server routes', () => {
       body: {
         order_id: 'order_123',
         payment_status: 'finished',
-        pay_currency: 'USDTTRC20',
+        pay_currency: 'USDTBSC',
         actually_paid: 25
       }
     });
@@ -285,7 +322,7 @@ describe('payment bridge server routes', () => {
     const ipn = {
       order_id: 'order_123',
       payment_status: 'finished',
-      pay_currency: 'USDTTRC20',
+      pay_currency: 'USDTBSC',
       actually_paid: 25
     };
 
@@ -330,7 +367,7 @@ describe('payment bridge server routes', () => {
       body: {
         order_id: 'order_123',
         payment_status: 'finished',
-        pay_currency: 'USDTTRC20',
+        pay_currency: 'USDTBSC',
         actually_paid: 'not-a-number'
       }
     });
@@ -362,7 +399,7 @@ describe('payment bridge server routes', () => {
       body: {
         order_id: 'order_123',
         payment_status: 'finished',
-        pay_currency: 'USDTTRC20',
+        pay_currency: 'USDTBSC',
         actually_paid: 25
       }
     });

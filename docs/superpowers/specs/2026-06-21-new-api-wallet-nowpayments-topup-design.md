@@ -2,12 +2,12 @@
 
 ## Goal
 
-Add a native NOWPayments USDT-TRC20 recharge entry to the New API wallet page so users can top up from the existing wallet flow instead of visiting a separate payment page.
+Add a native NOWPayments USDT-BSC (BEP20) recharge entry to the New API wallet page so users can top up from the existing wallet flow instead of visiting a separate payment page.
 
 The first version is for the Stage 1 MVP and must keep the working payment bridge flow unchanged:
 
 1. The logged-in user opens Wallet Management.
-2. The user selects a fixed USDT-TRC20 amount.
+2. The user selects a fixed USDT-BSC (BEP20) amount.
 3. The frontend creates a NOWPayments invoice through the payment bridge.
 4. The browser redirects to the NOWPayments invoice URL.
 5. The payment bridge credits the user only after a valid NOWPayments IPN webhook.
@@ -32,7 +32,7 @@ The first version is for the Stage 1 MVP and must keep the working payment bridg
 - Trusting frontend return URLs as payment proof.
 - Showing real-time payment status polling.
 - Adding arbitrary recharge amounts.
-- Adding payment methods beyond USDT-TRC20.
+- Adding payment methods beyond USDT-BSC (BEP20).
 - Supporting MiMo Token Plan as a public paid channel.
 - Redesigning the full wallet page.
 - Building a standalone marketing site.
@@ -43,17 +43,17 @@ The wallet page should show a compact card near the existing recharge controls.
 
 The card content is:
 
-- Title: `USDT-TRC20 Top-up`
-- Supporting text: `Pay with USDT-TRC20. Credits are added after network confirmation.`
-- Amount options: `$10`, `$25`, `$50`, `$100`
-- Primary button: `Pay with USDT-TRC20`
+- Title: `USDT-BSC (BEP20) Top-up`
+- Supporting text: `Pay with USDT-BSC (BEP20). On Binance, choose BSC / BNB Smart Chain (BEP20). Credits are added after confirmation.`
+- Amount options: `$20`, `$30`, `$50`, `$100`
+- Primary button: `Pay with USDT-BSC (BEP20)`
 - Small note: `Do not close the payment page until the invoice is created.`
 
 Simplified Chinese text:
 
-- Title: `USDT-TRC20 充值`
-- Supporting text: `使用 USDT-TRC20 支付，链上确认后自动到账。`
-- Primary button: `使用 USDT-TRC20 支付`
+- Title: `USDT-BSC (BEP20) 充值`
+- Supporting text: `使用 USDT-BSC (BEP20) 支付；币安提现请选择 BSC / BNB Smart Chain (BEP20)，链上确认后自动到账。`
+- Primary button: `使用 USDT-BSC (BEP20) 支付`
 - Small note: `发票创建完成前请勿关闭页面。`
 
 The component should follow the existing classic UI patterns and avoid large visual redesigns. It should not add a card inside another card if the existing wallet layout already provides a framed card container.
@@ -68,7 +68,7 @@ Content-Type: application/json
 
 {
   "user_id": <currentUser.id>,
-  "amount": 10
+  "amount": 20
 }
 ```
 
@@ -79,8 +79,8 @@ The payment bridge returns:
   "success": true,
   "data": {
     "order_id": "np_...",
-    "amount": 10,
-    "currency": "USDTTRC20",
+    "amount": 20,
+    "currency": "USDTBSC",
     "invoice_url": "https://nowpayments.io/payment/?iid=...",
     "nowpayments_invoice_id": "..."
   }
