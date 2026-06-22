@@ -7,6 +7,7 @@ import {
   isAllowedAmount,
   isFinalPaidStatus,
   markCredited,
+  createOrderId,
   releaseCreditClaim
 } from '../src/orders.js';
 import { ensurePaymentOrderConstraints, runMigrations } from '../src/migrations.js';
@@ -39,6 +40,13 @@ describe('order policy', () => {
     expect(isFinalPaidStatus('confirmed')).toBe(true);
     expect(isFinalPaidStatus('waiting')).toBe(false);
     expect(isFinalPaidStatus('failed')).toBe(false);
+  });
+
+  it('creates GMPay-compatible compact order IDs', () => {
+    const id = createOrderId();
+
+    expect(id).toMatch(/^np[a-z0-9]+$/);
+    expect(id.length).toBeLessThanOrEqual(22);
   });
 
   it('attaches provider-neutral invoice identifiers while preserving legacy columns', async () => {

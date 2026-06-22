@@ -13,7 +13,7 @@ export function isFinalPaidStatus(status) {
 }
 
 export function createOrderId() {
-  return `np_${Date.now()}_${crypto.randomBytes(8).toString('hex')}`;
+  return `np${Date.now().toString(36)}${crypto.randomBytes(4).toString('hex')}`;
 }
 
 export async function createPendingOrder(pool, config, { userId, amountUsd }) {
