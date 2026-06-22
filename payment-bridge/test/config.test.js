@@ -8,7 +8,6 @@ describe('payment bridge config', () => {
     NEW_API_ADMIN_ACCESS_TOKEN: 'admin-token-123456',
     NEW_API_ADMIN_USER_ID: '1',
     EPUSDT_API_BASE: 'https://epusdt.example.com',
-    EPUSDT_PID: '1000',
     EPUSDT_SECRET_KEY: 'epusdt-secret-123456',
     PAYMENT_PUBLIC_BASE_URL: 'https://api.example.com'
   };
@@ -25,7 +24,6 @@ describe('payment bridge config', () => {
     expect(config.paymentProvider).toBe('epusdt');
     expect(config.rechargeCurrency).toBe('USDTTRC20');
     expect(config.epusdtApiBase).toBe('https://epusdt.example.com');
-    expect(config.epusdtPid).toBe('1000');
     expect(config.epusdtSecretKey).toBe('epusdt-secret-123456');
   });
 });

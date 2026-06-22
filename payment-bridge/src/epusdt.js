@@ -31,7 +31,6 @@ export function isValidEpusdtSignature(body, signature, secretKey) {
 
 export async function createEpusdtTransaction({ config, order }) {
   const body = {
-    pid: config.epusdtPid,
     currency: 'usd',
     token: 'usdt',
     network: 'tron',

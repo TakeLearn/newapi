@@ -15,7 +15,6 @@ describe('Epusdt signature verification', () => {
     const payload = {
       trade_id: 'trade_123',
       order_id: 'ep_order_123',
-      pid: '1000',
       amount: 1,
       status: 2,
       signature: 'ignored',
@@ -24,7 +23,7 @@ describe('Epusdt signature verification', () => {
 
     const expected = crypto
       .createHash('md5')
-      .update('amount=1&order_id=ep_order_123&pid=1000&status=2&trade_id=trade_123test-secret-123456')
+      .update('amount=1&order_id=ep_order_123&status=2&trade_id=trade_123test-secret-123456')
       .digest('hex');
 
     expect(buildEpusdtSignature(payload, 'test-secret-123456')).toBe(expected);
@@ -34,7 +33,6 @@ describe('Epusdt signature verification', () => {
     const secret = 'test-secret-123456';
     const callback = {
       order_id: 'ep_order_123',
-      pid: '1000',
       amount: 1,
       status: 2,
       trade_id: 'trade_123'
@@ -70,7 +68,6 @@ describe('Epusdt transaction creation', () => {
     const invoice = await createEpusdtTransaction({
       config: {
         epusdtApiBase: 'https://epusdt.example.com',
-        epusdtPid: '1000',
         epusdtSecretKey: 'secret-key-123456',
         paymentPublicBaseUrl: 'https://api.example.com'
       },
@@ -90,7 +87,6 @@ describe('Epusdt transaction creation', () => {
     );
     expect(JSON.parse(fetch.mock.calls[0][1].body)).toEqual(
       expect.objectContaining({
-        pid: '1000',
         order_id: 'local_order_123',
         currency: 'usd',
         token: 'usdt',
@@ -101,6 +97,7 @@ describe('Epusdt transaction creation', () => {
         signature: expect.any(String)
       })
     );
+    expect(JSON.parse(fetch.mock.calls[0][1].body)).not.toHaveProperty('pid');
     expect(JSON.parse(fetch.mock.calls[0][1].body).signature).toBe(
       buildEpusdtSignature(JSON.parse(fetch.mock.calls[0][1].body), 'secret-key-123456')
     );
