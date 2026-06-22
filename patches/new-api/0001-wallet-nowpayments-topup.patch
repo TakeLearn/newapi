@@ -1,9 +1,9 @@
 diff --git a/web/classic/src/components/topup/NowPaymentsTopUpCard.jsx b/web/classic/src/components/topup/NowPaymentsTopUpCard.jsx
 new file mode 100644
-index 00000000..65adb0ab
+index 00000000..6e202bdc
 --- /dev/null
 +++ b/web/classic/src/components/topup/NowPaymentsTopUpCard.jsx
-@@ -0,0 +1,172 @@
+@@ -0,0 +1,171 @@
 +/*
 +Copyright (C) 2025 QuantumNous
 +
@@ -31,7 +31,7 @@ index 00000000..65adb0ab
 +
 +const { Text, Title } = Typography;
 +
-+const TOP_UP_AMOUNTS = [20, 30, 50, 100];
++const TOP_UP_AMOUNTS = [1, 3, 5, 10];
 +
 +function isSafeHttpInvoiceUrl(value) {
 +  const trimmed = (value || '').trim();
@@ -42,8 +42,7 @@ index 00000000..65adb0ab
 +    const url = new URL(trimmed);
 +    return (
 +      url.protocol === 'https:' &&
-+      (url.hostname === 'nowpayments.io' ||
-+        url.hostname === 'www.nowpayments.io')
++      url.hostname === 'pay.204-168-215-163.sslip.io'
 +    );
 +  } catch {
 +    return false;
@@ -107,7 +106,7 @@ index 00000000..65adb0ab
 +        throw new Error(t('Unable to create payment invoice.'));
 +      }
 +
-+      showSuccess(t('Redirecting to NOWPayments...'));
++      showSuccess(t('Redirecting to payment page...'));
 +      window.location.href = invoiceUrl;
 +    } catch (error) {
 +      showError(getFailureMessage(error));
@@ -125,11 +124,11 @@ index 00000000..65adb0ab
 +          </div>
 +          <div>
 +            <Title heading={6} style={{ margin: 0 }}>
-+              {t('USDT-BSC (BEP20) Top-up')}
++              {t('USDT-TRC20 Top-up')}
 +            </Title>
 +            <Text type='tertiary' size='small'>
 +              {t(
-+                'Pay with USDT-BSC (BEP20). On Binance, choose BSC / BNB Smart Chain (BEP20). Credits are added after confirmation.'
++                'Pay with USDT-TRC20. Choose Tron / TRC20 in your wallet or exchange. Credits are added after confirmation.'
 +              )}
 +            </Text>
 +          </div>
@@ -168,7 +167,7 @@ index 00000000..65adb0ab
 +          className='!rounded-lg'
 +          icon={<WalletCards size={16} />}
 +        >
-+          {t('Pay with USDT-BSC (BEP20)')}
++          {t('Pay with USDT-TRC20')}
 +        </Button>
 +      </Space>
 +    </div>
@@ -870,56 +869,56 @@ index 4fe2035a..8a25f367 100644
        {/* 兑换码充值 */}
        {enableRedemption ? (
 diff --git a/web/classic/src/i18n/locales/en.json b/web/classic/src/i18n/locales/en.json
-index 6beb1917..50129014 100644
+index 6beb1917..7b662cf2 100644
 --- a/web/classic/src/i18n/locales/en.json
 +++ b/web/classic/src/i18n/locales/en.json
 @@ -1704,6 +1704,13 @@
      "操作类型": "Operation Type",
      "操练场": "Playground",
      "操练场和聊天功能": "Playground and chat functions",
-+    "USDT-BSC (BEP20) Top-up": "USDT-BSC (BEP20) Top-up",
-+    "Pay with USDT-BSC (BEP20). On Binance, choose BSC / BNB Smart Chain (BEP20). Credits are added after confirmation.": "Pay with USDT-BSC (BEP20). On Binance, choose BSC / BNB Smart Chain (BEP20). Credits are added after confirmation.",
-+    "Pay with USDT-BSC (BEP20)": "Pay with USDT-BSC (BEP20)",
++    "USDT-TRC20 Top-up": "USDT-TRC20 Top-up",
++    "Pay with USDT-TRC20. Choose Tron / TRC20 in your wallet or exchange. Credits are added after confirmation.": "Pay with USDT-TRC20. Choose Tron / TRC20 in your wallet or exchange. Credits are added after confirmation.",
++    "Pay with USDT-TRC20": "Pay with USDT-TRC20",
 +    "Do not close the payment page until the invoice is created.": "Do not close the payment page until the invoice is created.",
 +    "Unable to identify the current user. Please refresh and try again.": "Unable to identify the current user. Please refresh and try again.",
 +    "Unable to create payment invoice.": "Unable to create payment invoice.",
-+    "Redirecting to NOWPayments...": "Redirecting to NOWPayments...",
++    "Redirecting to payment page...": "Redirecting to payment page...",
      "支付": "Pay",
      "支付地址": "Payment address",
      "支付失败": "Payment failed",
 diff --git a/web/classic/src/i18n/locales/zh-CN.json b/web/classic/src/i18n/locales/zh-CN.json
-index aa484c52..e27c25fb 100644
+index aa484c52..817963f1 100644
 --- a/web/classic/src/i18n/locales/zh-CN.json
 +++ b/web/classic/src/i18n/locales/zh-CN.json
 @@ -1664,6 +1664,13 @@
      "操作类型": "操作类型",
      "操练场": "操练场",
      "操练场和聊天功能": "操练场和聊天功能",
-+    "USDT-BSC (BEP20) Top-up": "USDT-BSC (BEP20) 充值",
-+    "Pay with USDT-BSC (BEP20). On Binance, choose BSC / BNB Smart Chain (BEP20). Credits are added after confirmation.": "使用 USDT-BSC (BEP20) 支付；币安提现请选择 BSC / BNB Smart Chain (BEP20)，链上确认后自动到账。",
-+    "Pay with USDT-BSC (BEP20)": "使用 USDT-BSC (BEP20) 支付",
++    "USDT-TRC20 Top-up": "USDT-TRC20 充值",
++    "Pay with USDT-TRC20. Choose Tron / TRC20 in your wallet or exchange. Credits are added after confirmation.": "使用 USDT-TRC20 支付；钱包或交易所提现请选择 Tron / TRC20 网络，链上确认后自动到账。",
++    "Pay with USDT-TRC20": "使用 USDT-TRC20 支付",
 +    "Do not close the payment page until the invoice is created.": "发票创建完成前请勿关闭页面。",
 +    "Unable to identify the current user. Please refresh and try again.": "无法识别当前用户，请刷新后重试。",
 +    "Unable to create payment invoice.": "无法创建支付发票。",
-+    "Redirecting to NOWPayments...": "正在跳转到 NOWPayments...",
++    "Redirecting to payment page...": "正在跳转到支付页面...",
      "支付": "支付",
      "支付地址": "支付地址",
      "支付失败": "支付失败",
 diff --git a/web/classic/src/i18n/locales/zh.json b/web/classic/src/i18n/locales/zh.json
-index 8f2e6aeb..aac89786 100644
+index 8f2e6aeb..6f99e0b6 100644
 --- a/web/classic/src/i18n/locales/zh.json
 +++ b/web/classic/src/i18n/locales/zh.json
 @@ -1149,6 +1149,13 @@
      "操作暂时被禁用": "操作暂时被禁用",
      "操练场": "操练场",
      "操练场和聊天功能": "操练场和聊天功能",
-+    "USDT-BSC (BEP20) Top-up": "USDT-BSC (BEP20) 充值",
-+    "Pay with USDT-BSC (BEP20). On Binance, choose BSC / BNB Smart Chain (BEP20). Credits are added after confirmation.": "使用 USDT-BSC (BEP20) 支付；币安提现请选择 BSC / BNB Smart Chain (BEP20)，链上确认后自动到账。",
-+    "Pay with USDT-BSC (BEP20)": "使用 USDT-BSC (BEP20) 支付",
++    "USDT-TRC20 Top-up": "USDT-TRC20 充值",
++    "Pay with USDT-TRC20. Choose Tron / TRC20 in your wallet or exchange. Credits are added after confirmation.": "使用 USDT-TRC20 支付；钱包或交易所提现请选择 Tron / TRC20 网络，链上确认后自动到账。",
++    "Pay with USDT-TRC20": "使用 USDT-TRC20 支付",
 +    "Do not close the payment page until the invoice is created.": "发票创建完成前请勿关闭页面。",
 +    "Unable to identify the current user. Please refresh and try again.": "无法识别当前用户，请刷新后重试。",
 +    "Unable to create payment invoice.": "无法创建支付发票。",
-+    "Redirecting to NOWPayments...": "正在跳转到 NOWPayments...",
++    "Redirecting to payment page...": "正在跳转到支付页面...",
      "支付地址": "支付地址",
      "支付宝": "支付宝",
      "支付方式": "支付方式",
