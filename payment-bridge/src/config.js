@@ -12,8 +12,9 @@ const envSchema = z.object({
   EPUSDT_PID: z.string().min(1),
   EPUSDT_SECRET_KEY: z.string().min(16),
   PAYMENT_PUBLIC_BASE_URL: z.string().url(),
-  RECHARGE_ALLOWED_AMOUNTS: z.string().default('1,3,5,10'),
+  RECHARGE_ALLOWED_AMOUNTS: z.string().default('1,5,15,30,50,100'),
   RECHARGE_CURRENCY: z.string().default('USDTTRC20'),
+  RECHARGE_SUPPORTED_CURRENCIES: z.string().default('USDTTRC20,USDTBSC'),
   RECHARGE_CREDIT_MULTIPLIER: z.coerce.number().positive().default(1)
 });
 
@@ -26,6 +27,13 @@ export function loadConfig(env = process.env) {
 
   if (allowedAmounts.length === 0) {
     throw new Error('RECHARGE_ALLOWED_AMOUNTS must contain at least one positive integer');
+  }
+  const supportedRechargeCurrencies = parsed.RECHARGE_SUPPORTED_CURRENCIES.split(',')
+    .map((value) => value.trim().toUpperCase())
+    .filter(Boolean);
+
+  if (!supportedRechargeCurrencies.includes(parsed.RECHARGE_CURRENCY.toUpperCase())) {
+    supportedRechargeCurrencies.unshift(parsed.RECHARGE_CURRENCY.toUpperCase());
   }
 
   return {
@@ -42,6 +50,7 @@ export function loadConfig(env = process.env) {
     paymentPublicBaseUrl: parsed.PAYMENT_PUBLIC_BASE_URL.replace(/\/$/, ''),
     allowedAmounts,
     rechargeCurrency: parsed.RECHARGE_CURRENCY,
+    supportedRechargeCurrencies,
     rechargeCreditMultiplier: parsed.RECHARGE_CREDIT_MULTIPLIER
   };
 }

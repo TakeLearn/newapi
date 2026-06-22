@@ -8,6 +8,17 @@ export function calculateQuota(config, amountUsd) {
   return Math.round(amountUsd * config.rechargeCreditMultiplier * config.newApiQuotaPerUsd);
 }
 
+export function normalizeRechargeCurrency(config, currency) {
+  const selected = String(currency || config.rechargeCurrency).toUpperCase();
+  const supported = config.supportedRechargeCurrencies || [config.rechargeCurrency];
+
+  if (!supported.includes(selected)) {
+    throw new Error(`currency must be one of: ${supported.join(', ')}`);
+  }
+
+  return selected;
+}
+
 export function isFinalPaidStatus(status) {
   return ['2', 'success', 'finished', 'confirmed'].includes(String(status).toLowerCase());
 }
@@ -16,7 +27,7 @@ export function createOrderId() {
   return `np${Date.now().toString(36)}${crypto.randomBytes(4).toString('hex')}`;
 }
 
-export async function createPendingOrder(pool, config, { userId, amountUsd }) {
+export async function createPendingOrder(pool, config, { userId, amountUsd, currency }) {
   if (!Number.isInteger(userId) || userId <= 0) {
     throw new Error('userId must be a positive integer');
   }
@@ -26,12 +37,13 @@ export async function createPendingOrder(pool, config, { userId, amountUsd }) {
   }
 
   const now = Math.floor(Date.now() / 1000);
+  const rechargeCurrency = normalizeRechargeCurrency(config, currency);
   const order = {
     id: createOrderId(),
     userId,
     amountUsd,
     quotaToAdd: calculateQuota(config, amountUsd),
-    currency: config.rechargeCurrency,
+    currency: rechargeCurrency,
     provider: config.paymentProvider || 'epusdt',
     status: 'pending',
     createdAt: now,

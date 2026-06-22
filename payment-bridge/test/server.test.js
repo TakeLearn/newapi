@@ -96,7 +96,8 @@ function inject(app, { method, path, headers = {}, body }) {
 describe('payment bridge server routes', () => {
   const config = {
     epusdtSecretKey: 'test-ipn-secret-123456',
-    rechargeCurrency: 'USDTTRC20'
+    rechargeCurrency: 'USDTTRC20',
+    supportedRechargeCurrencies: ['USDTTRC20', 'USDTBSC']
   };
   const pool = { query: vi.fn().mockResolvedValue([{ affectedRows: 1 }]) };
 
@@ -143,7 +144,8 @@ describe('payment bridge server routes', () => {
     });
     expect(createPendingOrder).toHaveBeenCalledWith(pool, config, {
       userId: 42,
-      amountUsd: 1
+      amountUsd: 1,
+      currency: 'USDTTRC20'
     });
     expect(createEpusdtTransaction).toHaveBeenCalledWith({
       config,
@@ -153,6 +155,48 @@ describe('payment bridge server routes', () => {
       id: 'trade_123',
       invoice_url: 'https://epusdt.example/usdt/gate/?orderNo=ep_order_123',
       payment_id: 'ep_order_123'
+    });
+  });
+
+  it('creates an Epusdt transaction for a selected BSC recharge order', async () => {
+    createPendingOrder.mockResolvedValue({
+      id: 'order_bsc_123',
+      userId: 42,
+      amountUsd: 5,
+      quotaToAdd: 2500000,
+      currency: 'USDTBSC'
+    });
+    createEpusdtTransaction.mockResolvedValue({
+      id: 'trade_bsc_123',
+      invoice_url: 'https://epusdt.example/cashier/trade_bsc_123',
+      payment_id: 'ep_order_bsc_123'
+    });
+    attachInvoice.mockResolvedValue();
+
+    const app = createServer({ config, pool });
+    const response = await inject(app, {
+      method: 'POST',
+      path: '/payment/create',
+      body: {
+        user_id: '42',
+        amount: '5',
+        currency: 'USDTBSC'
+      }
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.body.data).toEqual(
+      expect.objectContaining({
+        order_id: 'order_bsc_123',
+        amount: 5,
+        currency: 'USDTBSC',
+        invoice_url: 'https://epusdt.example/cashier/trade_bsc_123'
+      })
+    );
+    expect(createPendingOrder).toHaveBeenCalledWith(pool, config, {
+      userId: 42,
+      amountUsd: 5,
+      currency: 'USDTBSC'
     });
   });
 

@@ -13,10 +13,10 @@ describe('payment bridge config', () => {
     PAYMENT_PUBLIC_BASE_URL: 'https://api.example.com'
   };
 
-  it('defaults to low-value Epusdt TRC20 recharge amounts', () => {
+  it('defaults to low-value Epusdt recharge amounts', () => {
     const config = loadConfig(baseEnv);
 
-    expect(config.allowedAmounts).toEqual([1, 3, 5, 10]);
+    expect(config.allowedAmounts).toEqual([1, 5, 15, 30, 50, 100]);
   });
 
   it('defaults to USDT-TRC20 through Epusdt', () => {

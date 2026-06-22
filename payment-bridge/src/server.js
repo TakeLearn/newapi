@@ -15,7 +15,8 @@ import {
 
 const createInvoiceSchema = z.object({
   user_id: z.coerce.number().int().positive(),
-  amount: z.coerce.number().int().positive()
+  amount: z.coerce.number().int().positive(),
+  currency: z.string().optional()
 });
 
 function normalizeEpusdtCallback(body) {
@@ -48,7 +49,8 @@ export function createServer({ config, pool }) {
       const input = createInvoiceSchema.parse(req.body);
       const order = await createPendingOrder(pool, config, {
         userId: input.user_id,
-        amountUsd: input.amount
+        amountUsd: input.amount,
+        currency: input.currency || config.rechargeCurrency
       });
       const invoice = await createEpusdtTransaction({ config, order });
       await attachInvoice(pool, order.id, invoice);

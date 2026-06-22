@@ -112,4 +112,43 @@ describe('Epusdt transaction creation', () => {
       })
     });
   });
+
+  it('maps USDT-BSC orders to the GMPay binance network', async () => {
+    const fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        status_code: 200,
+        message: 'success',
+        data: {
+          trade_id: 'trade_bsc_123',
+          order_id: 'ep_order_bsc_123',
+          payment_url: 'https://pay.example.com/cashier/trade_bsc_123'
+        }
+      })
+    });
+    vi.stubGlobal('fetch', fetch);
+
+    await createEpusdtTransaction({
+      config: {
+        epusdtApiBase: 'https://epusdt.example.com',
+        epusdtPid: '1000',
+        epusdtSecretKey: 'secret-key-123456',
+        paymentPublicBaseUrl: 'https://api.example.com'
+      },
+      order: {
+        id: 'local_order_bsc_123',
+        amountUsd: 5,
+        currency: 'USDTBSC'
+      }
+    });
+
+    expect(JSON.parse(fetch.mock.calls[0][1].body)).toEqual(
+      expect.objectContaining({
+        currency: 'usd',
+        token: 'usdt',
+        network: 'binance',
+        amount: 5
+      })
+    );
+  });
 });

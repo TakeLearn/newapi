@@ -3,7 +3,7 @@ new file mode 100644
 index 00000000..6e202bdc
 --- /dev/null
 +++ b/web/classic/src/components/topup/NowPaymentsTopUpCard.jsx
-@@ -0,0 +1,171 @@
+@@ -0,0 +1,213 @@
 +/*
 +Copyright (C) 2025 QuantumNous
 +
@@ -31,7 +31,25 @@ index 00000000..6e202bdc
 +
 +const { Text, Title } = Typography;
 +
-+const TOP_UP_AMOUNTS = [1, 3, 5, 10];
++const TOP_UP_AMOUNTS = [1, 5, 15, 30, 50, 100];
++const PAYMENT_OPTIONS = [
++  {
++    currency: 'USDTTRC20',
++    label: 'TRC20',
++    title: 'USDT-TRC20 Top-up',
++    description:
++      'Pay with USDT-TRC20. Choose Tron / TRC20 in your wallet or exchange. Credits are added after confirmation.',
++    buttonLabel: 'Pay with USDT-TRC20',
++  },
++  {
++    currency: 'USDTBSC',
++    label: 'BEP20',
++    title: 'USDT-BSC Top-up',
++    description:
++      'Pay with USDT-BSC (BEP20). Choose BSC / BNB Smart Chain (BEP20) in your wallet or exchange. Credits are added after confirmation.',
++    buttonLabel: 'Pay with USDT-BSC',
++  },
++];
 +
 +function isSafeHttpInvoiceUrl(value) {
 +  const trimmed = (value || '').trim();
@@ -51,6 +69,7 @@ index 00000000..6e202bdc
 +
 +const NowPaymentsTopUpCard = ({ t, userId }) => {
 +  const [selectedAmount, setSelectedAmount] = useState(TOP_UP_AMOUNTS[0]);
++  const [selectedCurrency, setSelectedCurrency] = useState(PAYMENT_OPTIONS[0].currency);
 +  const [loading, setLoading] = useState(false);
 +
 +  const amountOptions = useMemo(
@@ -60,6 +79,12 @@ index 00000000..6e202bdc
 +        label: `$${amount}`,
 +      })),
 +    [],
++  );
++  const selectedPayment = useMemo(
++    () =>
++      PAYMENT_OPTIONS.find((option) => option.currency === selectedCurrency) ||
++      PAYMENT_OPTIONS[0],
++    [selectedCurrency],
 +  );
 +
 +  const getFailureMessage = (error) => {
@@ -88,6 +113,7 @@ index 00000000..6e202bdc
 +        {
 +          user_id: userId,
 +          amount: selectedAmount,
++          currency: selectedPayment.currency,
 +        },
 +        { skipErrorHandler: true },
 +      );
@@ -124,15 +150,31 @@ index 00000000..6e202bdc
 +          </div>
 +          <div>
 +            <Title heading={6} style={{ margin: 0 }}>
-+              {t('USDT-TRC20 Top-up')}
++              {t(selectedPayment.title)}
 +            </Title>
 +            <Text type='tertiary' size='small'>
-+              {t(
-+                'Pay with USDT-TRC20. Choose Tron / TRC20 in your wallet or exchange. Credits are added after confirmation.'
-+              )}
++              {t(selectedPayment.description)}
 +            </Text>
 +          </div>
 +        </div>
++
++        <Space wrap>
++          {PAYMENT_OPTIONS.map((option) => {
++            const selected = selectedPayment.currency === option.currency;
++
++            return (
++              <Button
++                key={option.currency}
++                type={selected ? 'primary' : 'tertiary'}
++                theme={selected ? 'solid' : 'light'}
++                onClick={() => setSelectedCurrency(option.currency)}
++                className='!rounded-lg'
++              >
++                {option.label}
++              </Button>
++            );
++          })}
++        </Space>
 +
 +        <Space wrap>
 +          {amountOptions.map(({ amount, label }) => {
@@ -167,7 +209,7 @@ index 00000000..6e202bdc
 +          className='!rounded-lg'
 +          icon={<WalletCards size={16} />}
 +        >
-+          {t('Pay with USDT-TRC20')}
++          {t(selectedPayment.buttonLabel)}
 +        </Button>
 +      </Space>
 +    </div>
@@ -872,13 +914,16 @@ diff --git a/web/classic/src/i18n/locales/en.json b/web/classic/src/i18n/locales
 index 6beb1917..7b662cf2 100644
 --- a/web/classic/src/i18n/locales/en.json
 +++ b/web/classic/src/i18n/locales/en.json
-@@ -1704,6 +1704,13 @@
+@@ -1704,6 +1704,16 @@
      "操作类型": "Operation Type",
      "操练场": "Playground",
      "操练场和聊天功能": "Playground and chat functions",
 +    "USDT-TRC20 Top-up": "USDT-TRC20 Top-up",
 +    "Pay with USDT-TRC20. Choose Tron / TRC20 in your wallet or exchange. Credits are added after confirmation.": "Pay with USDT-TRC20. Choose Tron / TRC20 in your wallet or exchange. Credits are added after confirmation.",
 +    "Pay with USDT-TRC20": "Pay with USDT-TRC20",
++    "USDT-BSC Top-up": "USDT-BSC Top-up",
++    "Pay with USDT-BSC (BEP20). Choose BSC / BNB Smart Chain (BEP20) in your wallet or exchange. Credits are added after confirmation.": "Pay with USDT-BSC (BEP20). Choose BSC / BNB Smart Chain (BEP20) in your wallet or exchange. Credits are added after confirmation.",
++    "Pay with USDT-BSC": "Pay with USDT-BSC",
 +    "Do not close the payment page until the invoice is created.": "Do not close the payment page until the invoice is created.",
 +    "Unable to identify the current user. Please refresh and try again.": "Unable to identify the current user. Please refresh and try again.",
 +    "Unable to create payment invoice.": "Unable to create payment invoice.",
@@ -890,13 +935,16 @@ diff --git a/web/classic/src/i18n/locales/zh-CN.json b/web/classic/src/i18n/loca
 index aa484c52..817963f1 100644
 --- a/web/classic/src/i18n/locales/zh-CN.json
 +++ b/web/classic/src/i18n/locales/zh-CN.json
-@@ -1664,6 +1664,13 @@
+@@ -1664,6 +1664,16 @@
      "操作类型": "操作类型",
      "操练场": "操练场",
      "操练场和聊天功能": "操练场和聊天功能",
 +    "USDT-TRC20 Top-up": "USDT-TRC20 充值",
 +    "Pay with USDT-TRC20. Choose Tron / TRC20 in your wallet or exchange. Credits are added after confirmation.": "使用 USDT-TRC20 支付；钱包或交易所提现请选择 Tron / TRC20 网络，链上确认后自动到账。",
 +    "Pay with USDT-TRC20": "使用 USDT-TRC20 支付",
++    "USDT-BSC Top-up": "USDT-BSC 充值",
++    "Pay with USDT-BSC (BEP20). Choose BSC / BNB Smart Chain (BEP20) in your wallet or exchange. Credits are added after confirmation.": "使用 USDT-BSC (BEP20) 支付；钱包或交易所提现请选择 BSC / BNB Smart Chain (BEP20) 网络，链上确认后自动到账。",
++    "Pay with USDT-BSC": "使用 USDT-BSC 支付",
 +    "Do not close the payment page until the invoice is created.": "发票创建完成前请勿关闭页面。",
 +    "Unable to identify the current user. Please refresh and try again.": "无法识别当前用户，请刷新后重试。",
 +    "Unable to create payment invoice.": "无法创建支付发票。",
@@ -908,13 +956,16 @@ diff --git a/web/classic/src/i18n/locales/zh.json b/web/classic/src/i18n/locales
 index 8f2e6aeb..6f99e0b6 100644
 --- a/web/classic/src/i18n/locales/zh.json
 +++ b/web/classic/src/i18n/locales/zh.json
-@@ -1149,6 +1149,13 @@
+@@ -1149,6 +1149,16 @@
      "操作暂时被禁用": "操作暂时被禁用",
      "操练场": "操练场",
      "操练场和聊天功能": "操练场和聊天功能",
 +    "USDT-TRC20 Top-up": "USDT-TRC20 充值",
 +    "Pay with USDT-TRC20. Choose Tron / TRC20 in your wallet or exchange. Credits are added after confirmation.": "使用 USDT-TRC20 支付；钱包或交易所提现请选择 Tron / TRC20 网络，链上确认后自动到账。",
 +    "Pay with USDT-TRC20": "使用 USDT-TRC20 支付",
++    "USDT-BSC Top-up": "USDT-BSC 充值",
++    "Pay with USDT-BSC (BEP20). Choose BSC / BNB Smart Chain (BEP20) in your wallet or exchange. Credits are added after confirmation.": "使用 USDT-BSC (BEP20) 支付；钱包或交易所提现请选择 BSC / BNB Smart Chain (BEP20) 网络，链上确认后自动到账。",
++    "Pay with USDT-BSC": "使用 USDT-BSC 支付",
 +    "Do not close the payment page until the invoice is created.": "发票创建完成前请勿关闭页面。",
 +    "Unable to identify the current user. Please refresh and try again.": "无法识别当前用户，请刷新后重试。",
 +    "Unable to create payment invoice.": "无法创建支付发票。",

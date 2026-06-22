@@ -4,6 +4,19 @@ function formatAmount(amount) {
   return Number(amount);
 }
 
+const PAYMENT_ASSETS = {
+  USDTTRC20: { token: 'usdt', network: 'tron' },
+  USDTBSC: { token: 'usdt', network: 'binance' }
+};
+
+export function resolveEpusdtAsset(currency) {
+  const asset = PAYMENT_ASSETS[String(currency || 'USDTTRC20').toUpperCase()];
+  if (!asset) {
+    throw new Error(`unsupported Epusdt currency: ${currency}`);
+  }
+  return asset;
+}
+
 export function buildEpusdtSignature(payload, secretKey) {
   const base = Object.entries(payload)
     .filter(([key, value]) => key !== 'signature' && value !== undefined && value !== null && value !== '')
@@ -30,10 +43,11 @@ export function isValidEpusdtSignature(body, signature, secretKey) {
 }
 
 export async function createEpusdtTransaction({ config, order }) {
+  const asset = resolveEpusdtAsset(order.currency || config.rechargeCurrency);
   const body = {
     currency: 'usd',
-    token: 'usdt',
-    network: 'tron',
+    token: asset.token,
+    network: asset.network,
     order_id: order.id,
     pid: config.epusdtPid,
     amount: formatAmount(order.amountUsd),
