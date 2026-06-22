@@ -35,6 +35,7 @@ export async function createEpusdtTransaction({ config, order }) {
     token: 'usdt',
     network: 'tron',
     order_id: order.id,
+    pid: config.epusdtPid,
     amount: formatAmount(order.amountUsd),
     notify_url: `${config.paymentPublicBaseUrl}/payment/ipn`,
     redirect_url: `${config.paymentPublicBaseUrl}/console/topup?status=success`

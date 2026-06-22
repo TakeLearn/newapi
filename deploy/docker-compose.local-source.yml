@@ -84,6 +84,7 @@ services:
       - NEW_API_QUOTA_PER_USD=500000
       - PAYMENT_PROVIDER=epusdt
       - EPUSDT_API_BASE=http://epusdt.localhost
+      - EPUSDT_PID=1000
       - EPUSDT_SECRET_KEY=local-epusdt-secret-placeholder
       - PAYMENT_PUBLIC_BASE_URL=http://localhost:8080
       - RECHARGE_ALLOWED_AMOUNTS=1,3,5,10

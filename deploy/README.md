@@ -81,10 +81,11 @@ Edit `.env` and set every `replace-with-*` value before starting services. Confi
 - `NEW_API_ADMIN_ACCESS_TOKEN`
 - `NEW_API_ADMIN_USER_ID`
 - `EPUSDT_API_BASE`
+- `EPUSDT_PID`
 - `EPUSDT_SECRET_KEY`
 - MySQL, Redis, session, and crypto secrets
 
-`EPUSDT_SECRET_KEY` must match the Epusdt merchant secret. The payment bridge should not start without it.
+`EPUSDT_PID` and `EPUSDT_SECRET_KEY` must match the Epusdt API key values. The payment bridge should not start without them.
 
 For a one-server sslip.io test deployment, keep New API and Epusdt on separate hostnames:
 
@@ -93,7 +94,7 @@ For a one-server sslip.io test deployment, keep New API and Epusdt on separate h
 - `PAYMENT_PUBLIC_BASE_URL=https://204-168-215-163.sslip.io`
 - `EPUSDT_API_BASE=https://pay.204-168-215-163.sslip.io`
 
-After Epusdt starts, open `https://$EPUSDT_HOST`, complete its setup, then copy the payment secret from `System -> Payment Management` into `EPUSDT_SECRET_KEY`. Restart `payment-bridge` after changing that value.
+After Epusdt starts, open `https://$EPUSDT_HOST`, complete its setup, then copy the API key PID and secret from `System -> Payment Management` into `EPUSDT_PID` and `EPUSDT_SECRET_KEY`. Restart `payment-bridge` after changing those values.
 
 ## Start Or Update
 

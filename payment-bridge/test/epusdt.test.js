@@ -68,6 +68,7 @@ describe('Epusdt transaction creation', () => {
     const invoice = await createEpusdtTransaction({
       config: {
         epusdtApiBase: 'https://epusdt.example.com',
+        epusdtPid: '1000',
         epusdtSecretKey: 'secret-key-123456',
         paymentPublicBaseUrl: 'https://api.example.com'
       },
@@ -88,6 +89,7 @@ describe('Epusdt transaction creation', () => {
     expect(JSON.parse(fetch.mock.calls[0][1].body)).toEqual(
       expect.objectContaining({
         order_id: 'local_order_123',
+        pid: '1000',
         currency: 'usd',
         token: 'usdt',
         network: 'tron',
@@ -97,7 +99,6 @@ describe('Epusdt transaction creation', () => {
         signature: expect.any(String)
       })
     );
-    expect(JSON.parse(fetch.mock.calls[0][1].body)).not.toHaveProperty('pid');
     expect(JSON.parse(fetch.mock.calls[0][1].body).signature).toBe(
       buildEpusdtSignature(JSON.parse(fetch.mock.calls[0][1].body), 'secret-key-123456')
     );
