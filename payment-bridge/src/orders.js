@@ -9,7 +9,7 @@ export function calculateQuota(config, amountUsd) {
 }
 
 export function isFinalPaidStatus(status) {
-  return ['finished', 'confirmed'].includes(String(status).toLowerCase());
+  return ['2', 'success', 'finished', 'confirmed'].includes(String(status).toLowerCase());
 }
 
 export function createOrderId() {
@@ -32,6 +32,7 @@ export async function createPendingOrder(pool, config, { userId, amountUsd }) {
     amountUsd,
     quotaToAdd: calculateQuota(config, amountUsd),
     currency: config.rechargeCurrency,
+    provider: config.paymentProvider || 'epusdt',
     status: 'pending',
     createdAt: now,
     updatedAt: now
@@ -39,9 +40,9 @@ export async function createPendingOrder(pool, config, { userId, amountUsd }) {
 
   await pool.query(
     `INSERT INTO payment_orders
-      (id, user_id, amount_usd, quota_to_add, currency, status, created_at, updated_at)
+      (id, user_id, amount_usd, quota_to_add, currency, provider, status, created_at, updated_at)
      VALUES
-      (:id, :userId, :amountUsd, :quotaToAdd, :currency, :status, :createdAt, :updatedAt)`,
+      (:id, :userId, :amountUsd, :quotaToAdd, :currency, :provider, :status, :createdAt, :updatedAt)`,
     order
   );
 
@@ -55,8 +56,10 @@ export async function attachInvoice(pool, orderId, invoice) {
 
   await pool.query(
     `UPDATE payment_orders
-     SET nowpayments_invoice_id = :invoiceId,
-         nowpayments_payment_id = :paymentId,
+     SET provider_invoice_id = :invoiceId,
+         provider_payment_id = :paymentId,
+         nowpayments_invoice_id = COALESCE(nowpayments_invoice_id, :invoiceId),
+         nowpayments_payment_id = COALESCE(nowpayments_payment_id, :paymentId),
          updated_at = :now
      WHERE id = :orderId`,
     { orderId, invoiceId, paymentId, now }
@@ -76,8 +79,8 @@ export async function findOrderForIpn(pool, ipn) {
   if (paymentId) {
     const [paymentRows] = await pool.query(
       `SELECT * FROM payment_orders
-       WHERE nowpayments_payment_id IS NOT NULL
-         AND nowpayments_payment_id = :paymentId
+       WHERE (provider_payment_id IS NOT NULL AND provider_payment_id = :paymentId)
+          OR (nowpayments_payment_id IS NOT NULL AND nowpayments_payment_id = :paymentId)
        LIMIT 1`,
       { paymentId }
     );
@@ -95,7 +98,9 @@ export async function markIpnObserved(pool, orderId, ipn) {
   const now = Math.floor(Date.now() / 1000);
   await pool.query(
     `UPDATE payment_orders
-     SET nowpayments_payment_id = COALESCE(nowpayments_payment_id, :paymentId),
+     SET provider_payment_id = COALESCE(provider_payment_id, :paymentId),
+         provider_status = :paymentStatus,
+         nowpayments_payment_id = COALESCE(nowpayments_payment_id, :paymentId),
          nowpayments_status = :paymentStatus,
          actually_paid = :actuallyPaid,
          updated_at = :now
@@ -119,7 +124,8 @@ export async function claimCreditOnce(pool, orderId) {
      WHERE id = :orderId
        AND credited_at IS NULL
        AND status = 'pending'
-       AND nowpayments_status IN ('finished', 'confirmed')`,
+       AND (provider_status IN ('2', 'success', 'finished', 'confirmed')
+         OR nowpayments_status IN ('2', 'success', 'finished', 'confirmed'))`,
     { orderId, now }
   );
 

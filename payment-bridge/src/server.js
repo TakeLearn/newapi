@@ -1,7 +1,7 @@
 import express from 'express';
 import { z } from 'zod';
+import { createEpusdtTransaction, isValidEpusdtSignature } from './epusdt.js';
 import { addUserQuota } from './newApiClient.js';
-import { createNowpaymentsInvoice, isValidIpnSignature } from './nowpayments.js';
 import {
   attachInvoice,
   claimCreditOnce,
@@ -17,6 +17,22 @@ const createInvoiceSchema = z.object({
   user_id: z.coerce.number().int().positive(),
   amount: z.coerce.number().int().positive()
 });
+
+function normalizeEpusdtCallback(body) {
+  const network = String(body.block_network || body.network || '').toUpperCase();
+  const token = String(body.token || body.currency || 'USDT').toUpperCase();
+  const tronNetworks = new Set(['TRC20', 'TRON']);
+  const payCurrency = token === 'USDT' && tronNetworks.has(network) ? 'USDTTRC20' : `${token}${network}`;
+
+  return {
+    order_id: body.order_id,
+    payment_id: body.trade_id || body.transaction_id || body.txid || null,
+    payment_status: body.status,
+    pay_currency: payCurrency,
+    actually_paid: body.amount,
+    raw: body
+  };
+}
 
 export function createServer({ config, pool }) {
   const app = express();
@@ -34,7 +50,7 @@ export function createServer({ config, pool }) {
         userId: input.user_id,
         amountUsd: input.amount
       });
-      const invoice = await createNowpaymentsInvoice({ config, order });
+      const invoice = await createEpusdtTransaction({ config, order });
       await attachInvoice(pool, order.id, invoice);
 
       res.json({
@@ -44,7 +60,8 @@ export function createServer({ config, pool }) {
           amount: order.amountUsd,
           currency: order.currency,
           invoice_url: invoice.invoice_url,
-          nowpayments_invoice_id: invoice.id || invoice.invoice_id || null
+          payment_provider: 'epusdt',
+          provider_invoice_id: invoice.id || invoice.invoice_id || null
         }
       });
     } catch (error) {
@@ -54,34 +71,35 @@ export function createServer({ config, pool }) {
 
   app.post('/payment/ipn', async (req, res) => {
     try {
-      const signature = req.header('x-nowpayments-sig');
+      const signature = req.body.signature;
 
-      if (!isValidIpnSignature(req.body, signature, config.nowpaymentsIpnSecret)) {
+      if (!isValidEpusdtSignature(req.body, signature, config.epusdtSecretKey)) {
         res.status(401).json({ success: false, message: 'invalid signature' });
         return;
       }
 
-      const order = await findOrderForIpn(pool, req.body);
+      const ipn = normalizeEpusdtCallback(req.body);
+      const order = await findOrderForIpn(pool, ipn);
       if (!order) {
         res.status(404).json({ success: false, message: 'order not found' });
         return;
       }
 
-      await markIpnObserved(pool, order.id, req.body);
+      await markIpnObserved(pool, order.id, ipn);
 
-      if (!isFinalPaidStatus(req.body.payment_status)) {
-        res.json({ success: true, data: { credited: false, status: req.body.payment_status } });
+      if (!isFinalPaidStatus(ipn.payment_status)) {
+        res.json({ success: true, data: { credited: false, status: ipn.payment_status } });
         return;
       }
 
-      const paidCurrency = String(req.body.pay_currency || '').toUpperCase();
+      const paidCurrency = String(ipn.pay_currency || '').toUpperCase();
       const expectedCurrency = String(order.currency || config.rechargeCurrency).toUpperCase();
       if (paidCurrency !== expectedCurrency) {
         res.status(400).json({ success: false, message: 'currency mismatch' });
         return;
       }
 
-      const actuallyPaid = Number(req.body.actually_paid || 0);
+      const actuallyPaid = Number(ipn.actually_paid || 0);
       if (!Number.isFinite(actuallyPaid)) {
         res.status(400).json({ success: false, message: 'invalid paid amount' });
         return;

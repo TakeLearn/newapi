@@ -75,15 +75,26 @@ openssl rand -hex 32
 Edit `.env` and set every `replace-with-*` value before starting services. Confirm these values are correct for the target environment:
 
 - `APP_HOST`
+- `EPUSDT_HOST`
 - `PAYMENT_PUBLIC_BASE_URL`
 - `NEW_API_IMAGE`
 - `NEW_API_ADMIN_ACCESS_TOKEN`
 - `NEW_API_ADMIN_USER_ID`
-- `NOWPAYMENTS_API_KEY`
-- `NOWPAYMENTS_IPN_SECRET`
+- `EPUSDT_API_BASE`
+- `EPUSDT_PID`
+- `EPUSDT_SECRET_KEY`
 - MySQL, Redis, session, and crypto secrets
 
-`NOWPAYMENTS_IPN_SECRET` must be non-empty. The payment bridge should not start without it.
+`EPUSDT_SECRET_KEY` must match the Epusdt merchant secret. The payment bridge should not start without it.
+
+For a one-server sslip.io test deployment, keep New API and Epusdt on separate hostnames:
+
+- `APP_HOST=204-168-215-163.sslip.io`
+- `EPUSDT_HOST=pay.204-168-215-163.sslip.io`
+- `PAYMENT_PUBLIC_BASE_URL=https://204-168-215-163.sslip.io`
+- `EPUSDT_API_BASE=https://pay.204-168-215-163.sslip.io`
+
+After Epusdt starts, open `https://$EPUSDT_HOST`, complete its setup, create or inspect the GMPay merchant, then copy the merchant `PID` and secret into `EPUSDT_PID` and `EPUSDT_SECRET_KEY`. Restart `payment-bridge` after changing those values.
 
 ## Start Or Update
 

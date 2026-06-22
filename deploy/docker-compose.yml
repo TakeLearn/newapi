@@ -12,9 +12,11 @@ services:
       - caddy_config:/config
     environment:
       - APP_HOST=${APP_HOST}
+      - EPUSDT_HOST=${EPUSDT_HOST}
     depends_on:
       - new-api
       - payment-bridge
+      - epusdt
     networks:
       - app
 
@@ -67,9 +69,10 @@ services:
       - NEW_API_ADMIN_ACCESS_TOKEN=${NEW_API_ADMIN_ACCESS_TOKEN}
       - NEW_API_ADMIN_USER_ID=${NEW_API_ADMIN_USER_ID}
       - NEW_API_QUOTA_PER_USD=${NEW_API_QUOTA_PER_USD}
-      - NOWPAYMENTS_API_KEY=${NOWPAYMENTS_API_KEY}
-      - NOWPAYMENTS_IPN_SECRET=${NOWPAYMENTS_IPN_SECRET}
-      - NOWPAYMENTS_API_BASE=${NOWPAYMENTS_API_BASE}
+      - PAYMENT_PROVIDER=${PAYMENT_PROVIDER}
+      - EPUSDT_API_BASE=${EPUSDT_API_BASE}
+      - EPUSDT_PID=${EPUSDT_PID}
+      - EPUSDT_SECRET_KEY=${EPUSDT_SECRET_KEY}
       - PAYMENT_PUBLIC_BASE_URL=${PAYMENT_PUBLIC_BASE_URL}
       - RECHARGE_ALLOWED_AMOUNTS=${RECHARGE_ALLOWED_AMOUNTS}
       - RECHARGE_CURRENCY=${RECHARGE_CURRENCY}
@@ -85,6 +88,19 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+    networks:
+      - app
+
+  epusdt:
+    image: gmwallet/epusdt:latest
+    container_name: epusdt
+    restart: unless-stopped
+    expose:
+      - "8000"
+    volumes:
+      - epusdt_data:/app/data
+    environment:
+      - TZ=${TZ}
     networks:
       - app
 
@@ -126,6 +142,7 @@ volumes:
   redis_data:
   caddy_data:
   caddy_config:
+  epusdt_data:
 
 networks:
   app:

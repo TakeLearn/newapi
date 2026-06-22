@@ -30,4 +30,5 @@ new-api-src/
 
 # Temporary files
 tmp/
+.superpowers/
 *.log

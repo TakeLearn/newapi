@@ -18,3 +18,11 @@
 		reverse_proxy new-api:3000
 	}
 }
+
+{$EPUSDT_HOST} {
+	encode zstd gzip
+
+	handle {
+		reverse_proxy epusdt:8000
+	}
+}

@@ -18,6 +18,10 @@ export async function runMigrations(pool) {
       quota_to_add INT NOT NULL,
       currency VARCHAR(32) NOT NULL,
       status VARCHAR(32) NOT NULL,
+      provider VARCHAR(32) NOT NULL DEFAULT 'epusdt',
+      provider_invoice_id VARCHAR(128) NULL,
+      provider_payment_id VARCHAR(128) NULL,
+      provider_status VARCHAR(64) NULL,
       nowpayments_invoice_id VARCHAR(128) NULL,
       nowpayments_payment_id VARCHAR(128) NULL,
       nowpayments_status VARCHAR(64) NULL,
@@ -27,6 +31,8 @@ export async function runMigrations(pool) {
       updated_at BIGINT NOT NULL,
       UNIQUE KEY uniq_nowpayments_invoice_id (nowpayments_invoice_id),
       UNIQUE KEY uniq_nowpayments_payment_id (nowpayments_payment_id),
+      UNIQUE KEY uniq_provider_invoice_id (provider_invoice_id),
+      UNIQUE KEY uniq_provider_payment_id (provider_payment_id),
       KEY idx_payment_orders_user_id (user_id),
       KEY idx_payment_orders_status (status),
       CONSTRAINT chk_payment_orders_amount_usd CHECK (amount_usd > 0),
@@ -37,8 +43,45 @@ export async function runMigrations(pool) {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
   `);
 
+  await ensureProviderColumns(pool);
   await ensurePaymentOrderCurrencyConstraint(pool);
   await ensurePaymentOrderConstraints(pool);
+}
+
+async function ensureProviderColumns(pool) {
+  const [rows = []] = await pool.query(
+    `SELECT COLUMN_NAME
+     FROM information_schema.COLUMNS
+     WHERE TABLE_SCHEMA = DATABASE()
+       AND TABLE_NAME = 'payment_orders'
+       AND COLUMN_NAME IN ('provider', 'provider_invoice_id', 'provider_payment_id', 'provider_status')`
+  );
+  const existing = new Set(rows.map((row) => row.COLUMN_NAME));
+
+  const statements = [
+    [
+      'provider',
+      "ALTER TABLE payment_orders ADD COLUMN provider VARCHAR(32) NOT NULL DEFAULT 'epusdt' AFTER status"
+    ],
+    [
+      'provider_invoice_id',
+      'ALTER TABLE payment_orders ADD COLUMN provider_invoice_id VARCHAR(128) NULL AFTER provider'
+    ],
+    [
+      'provider_payment_id',
+      'ALTER TABLE payment_orders ADD COLUMN provider_payment_id VARCHAR(128) NULL AFTER provider_invoice_id'
+    ],
+    [
+      'provider_status',
+      'ALTER TABLE payment_orders ADD COLUMN provider_status VARCHAR(64) NULL AFTER provider_payment_id'
+    ]
+  ];
+
+  for (const [column, sql] of statements) {
+    if (!existing.has(column)) {
+      await pool.query(sql);
+    }
+  }
 }
 
 async function ensurePaymentOrderCurrencyConstraint(pool) {

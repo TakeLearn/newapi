@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  attachInvoice,
   calculateQuota,
   claimCreditOnce,
   findOrderForIpn,
@@ -32,20 +33,48 @@ describe('order policy', () => {
   });
 
   it('accepts only final paid statuses', () => {
+    expect(isFinalPaidStatus(2)).toBe(true);
+    expect(isFinalPaidStatus('success')).toBe(true);
     expect(isFinalPaidStatus('finished')).toBe(true);
     expect(isFinalPaidStatus('confirmed')).toBe(true);
     expect(isFinalPaidStatus('waiting')).toBe(false);
     expect(isFinalPaidStatus('failed')).toBe(false);
   });
 
-  it('detects conflicting IPN order and payment identifiers', async () => {
+  it('attaches provider-neutral invoice identifiers while preserving legacy columns', async () => {
+    const calls = [];
+    const pool = {
+      async query(sql, params) {
+        calls.push({ sql, params });
+      }
+    };
+
+    await attachInvoice(pool, 'order_a', {
+      id: 'trade_123',
+      payment_id: 'ep_order_123',
+      invoice_url: 'https://epusdt.example/gate/ep_order_123'
+    });
+
+    expect(calls[0].sql).toContain('provider_invoice_id = :invoiceId');
+    expect(calls[0].sql).toContain('provider_payment_id = :paymentId');
+    expect(calls[0].sql).toContain('nowpayments_invoice_id = COALESCE(nowpayments_invoice_id, :invoiceId)');
+    expect(calls[0].params).toEqual(
+      expect.objectContaining({
+        orderId: 'order_a',
+        invoiceId: 'trade_123',
+        paymentId: 'ep_order_123'
+      })
+    );
+  });
+
+  it('detects conflicting IPN order and provider payment identifiers', async () => {
     const pool = {
       async query(_sql, params) {
         if (params.orderId === 'order_a') {
-          return [[{ id: 'order_a', nowpayments_payment_id: 'payment_a' }]];
+          return [[{ id: 'order_a', provider_payment_id: 'payment_a' }]];
         }
         if (params.paymentId === 'payment_b') {
-          return [[{ id: 'order_b', nowpayments_payment_id: 'payment_b' }]];
+          return [[{ id: 'order_b', provider_payment_id: 'payment_b' }]];
         }
         return [[]];
       }
@@ -67,7 +96,8 @@ describe('order policy', () => {
 
     await expect(claimCreditOnce(pool, 'order_a')).resolves.toBe(true);
     expect(calls[0].sql).toContain("status = 'pending'");
-    expect(calls[0].sql).toContain("nowpayments_status IN ('finished', 'confirmed')");
+    expect(calls[0].sql).toContain("provider_status IN ('2', 'success', 'finished', 'confirmed')");
+    expect(calls[0].sql).toContain("nowpayments_status IN ('2', 'success', 'finished', 'confirmed')");
   });
 
   it('marks credited only after an order is in crediting state', async () => {
@@ -126,9 +156,55 @@ describe('order policy', () => {
 
     await runMigrations(pool);
     expect(queries[0]).toContain('CHECK (amount_usd > 0)');
+    expect(queries[0]).toContain('provider VARCHAR(32) NOT NULL DEFAULT');
+    expect(queries[0]).toContain('provider_invoice_id VARCHAR(128) NULL');
+    expect(queries[0]).toContain('provider_payment_id VARCHAR(128) NULL');
+    expect(queries[0]).toContain('provider_status VARCHAR(64) NULL');
     expect(queries[0]).toContain('CHECK (quota_to_add > 0)');
     expect(queries[0]).toContain("CHECK (currency IN ('USDTBSC', 'USDTTRC20'))");
     expect(queries[0]).toContain("CHECK (status IN ('pending', 'crediting', 'credited', 'failed', 'expired'))");
+  });
+
+  it('adds provider-neutral columns to existing payment_orders tables', async () => {
+    const queries = [];
+    const pool = {
+      async query(sql) {
+        queries.push(sql);
+        if (sql.includes('information_schema.TABLE_CONSTRAINTS')) {
+          return [
+            [
+              { CONSTRAINT_NAME: 'chk_payment_orders_amount_usd' },
+              { CONSTRAINT_NAME: 'chk_payment_orders_quota_to_add' },
+              { CONSTRAINT_NAME: 'chk_payment_orders_timestamps' },
+              { CONSTRAINT_NAME: 'chk_payment_orders_currency' },
+              { CONSTRAINT_NAME: 'chk_payment_orders_status' }
+            ]
+          ];
+        }
+        if (sql.includes('information_schema.CHECK_CONSTRAINTS')) {
+          return [[{ CHECK_CLAUSE: "`currency` in ('USDTBSC','USDTTRC20')" }]];
+        }
+        if (sql.includes('information_schema.COLUMNS')) {
+          return [[]];
+        }
+        return [];
+      }
+    };
+
+    await runMigrations(pool);
+
+    expect(queries).toContain(
+      "ALTER TABLE payment_orders ADD COLUMN provider VARCHAR(32) NOT NULL DEFAULT 'epusdt' AFTER status"
+    );
+    expect(queries).toContain(
+      'ALTER TABLE payment_orders ADD COLUMN provider_invoice_id VARCHAR(128) NULL AFTER provider'
+    );
+    expect(queries).toContain(
+      'ALTER TABLE payment_orders ADD COLUMN provider_payment_id VARCHAR(128) NULL AFTER provider_invoice_id'
+    );
+    expect(queries).toContain(
+      'ALTER TABLE payment_orders ADD COLUMN provider_status VARCHAR(64) NULL AFTER provider_payment_id'
+    );
   });
 
   it('updates the legacy TRC20-only currency constraint in existing deployments', async () => {

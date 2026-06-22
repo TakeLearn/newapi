@@ -82,12 +82,13 @@ services:
       - NEW_API_ADMIN_ACCESS_TOKEN=local-new-api-admin-token-placeholder
       - NEW_API_ADMIN_USER_ID=1
       - NEW_API_QUOTA_PER_USD=500000
-      - NOWPAYMENTS_API_KEY=local-nowpayments-api-key-placeholder
-      - NOWPAYMENTS_IPN_SECRET=local-nowpayments-ipn-secret-placeholder
-      - NOWPAYMENTS_API_BASE=https://api.nowpayments.io/v1
+      - PAYMENT_PROVIDER=epusdt
+      - EPUSDT_API_BASE=http://epusdt.localhost
+      - EPUSDT_PID=local-epusdt-pid-placeholder
+      - EPUSDT_SECRET_KEY=local-epusdt-secret-placeholder
       - PAYMENT_PUBLIC_BASE_URL=http://localhost:8080
-      - RECHARGE_ALLOWED_AMOUNTS=20,30,50,100
-      - RECHARGE_CURRENCY=USDTBSC
+      - RECHARGE_ALLOWED_AMOUNTS=1,3,5,10
+      - RECHARGE_CURRENCY=USDTTRC20
       - RECHARGE_CREDIT_MULTIPLIER=1
       - TZ=Asia/Shanghai
     depends_on:

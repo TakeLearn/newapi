@@ -7,20 +7,25 @@ describe('payment bridge config', () => {
     NEW_API_BASE_URL: 'http://new-api:3000',
     NEW_API_ADMIN_ACCESS_TOKEN: 'admin-token-123456',
     NEW_API_ADMIN_USER_ID: '1',
-    NOWPAYMENTS_API_KEY: 'nowpayments-key-123456',
-    NOWPAYMENTS_IPN_SECRET: 'nowpayments-ipn-123456',
+    EPUSDT_API_BASE: 'https://epusdt.example.com',
+    EPUSDT_PID: '1000',
+    EPUSDT_SECRET_KEY: 'epusdt-secret-123456',
     PAYMENT_PUBLIC_BASE_URL: 'https://api.example.com'
   };
 
-  it('defaults to recharge amounts that stay above NOWPayments USDT-BSC minimum', () => {
+  it('defaults to low-value Epusdt TRC20 recharge amounts', () => {
     const config = loadConfig(baseEnv);
 
-    expect(config.allowedAmounts).toEqual([20, 30, 50, 100]);
+    expect(config.allowedAmounts).toEqual([1, 3, 5, 10]);
   });
 
-  it('defaults to the low-fee USDT-BSC recharge currency', () => {
+  it('defaults to USDT-TRC20 through Epusdt', () => {
     const config = loadConfig(baseEnv);
 
-    expect(config.rechargeCurrency).toBe('USDTBSC');
+    expect(config.paymentProvider).toBe('epusdt');
+    expect(config.rechargeCurrency).toBe('USDTTRC20');
+    expect(config.epusdtApiBase).toBe('https://epusdt.example.com');
+    expect(config.epusdtPid).toBe('1000');
+    expect(config.epusdtSecretKey).toBe('epusdt-secret-123456');
   });
 });
