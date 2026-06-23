@@ -1,0 +1,76 @@
+# Frontend Development - Backend built from local source
+#
+# Usage:
+#   1. docker compose -f docker-compose.dev.yml up -d
+#   2. cd web && bun install && bun run dev
+#   3. Open http://localhost:3001 (Rsbuild dev server, API auto-proxied to :3000)
+#
+# Rebuild backend after Go code changes:
+#   docker compose -f docker-compose.dev.yml up -d --build new-api
+#
+# Stop:
+#   docker compose -f docker-compose.dev.yml down
+#
+# Reset data:
+#   docker compose -f docker-compose.dev.yml down -v
+
+services:
+  new-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    image: new-api-dev:local
+    container_name: new-api-dev
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - dev_data:/data
+    environment:
+      - SQL_DSN=root:123456@tcp(mysql:3306)/new_api?charset=utf8mb4&parseTime=True&loc=Local
+      - REDIS_CONN_STRING=redis://redis
+      - TZ=Asia/Shanghai
+      - BATCH_UPDATE_ENABLED=true
+    depends_on:
+      redis:
+        condition: service_started
+      mysql:
+        condition: service_healthy
+    networks:
+      - dev-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: new-api-dev-redis
+    restart: unless-stopped
+    networks:
+      - dev-network
+
+  mysql:
+    image: mysql:8.4
+    container_name: new-api-dev-mysql
+    restart: unless-stopped
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_DATABASE: new_api
+      MYSQL_ROOT_PASSWORD: 123456
+      TZ: Asia/Shanghai
+    volumes:
+      - dev_mysql_data:/var/lib/mysql
+    networks:
+      - dev-network
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p123456 --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+volumes:
+  dev_data:
+  dev_mysql_data:
+
+networks:
+  dev-network:
+    driver: bridge

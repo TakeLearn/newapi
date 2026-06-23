@@ -1,0 +1,18 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <title>AxiomAPI</title>
+  <rect x="10" y="10" width="108" height="108" rx="32" fill="url(#base)" />
+  <path d="M31 83.5L58.6 27.5C60.7 23.2 66.8 23.2 68.9 27.5L96.5 83.5C98.3 87.1 95.7 91.3 91.7 91.3H79.7C77.5 91.3 75.5 90 74.6 88L64 64.7L53.4 88C52.5 90 50.5 91.3 48.3 91.3H36C32 91.3 29.3 87.1 31 83.5Z" fill="white" fill-opacity="0.94"/>
+  <path d="M49.4 73.4H78.6" stroke="url(#line)" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="35" cy="31" r="8" fill="white" fill-opacity="0.9"/>
+  <defs>
+    <linearGradient id="base" x1="22" y1="22" x2="106" y2="106" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8CE6D2"/>
+      <stop offset="0.48" stop-color="#2F72E8"/>
+      <stop offset="1" stop-color="#00A884"/>
+    </linearGradient>
+    <linearGradient id="line" x1="49.4" y1="73.4" x2="78.6" y2="73.4" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#D7F8FF"/>
+      <stop offset="1" stop-color="#B8FFE8"/>
+    </linearGradient>
+  </defs>
+</svg>
