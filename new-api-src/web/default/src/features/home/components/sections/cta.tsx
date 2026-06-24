@@ -38,28 +38,32 @@ export function CTA(props: CTAProps) {
   return (
     <section className='relative z-10 px-4 py-20 sm:px-6 md:py-28 lg:px-8'>
       <AnimateInView
-        className='relative mx-auto grid max-w-[1320px] gap-10 overflow-hidden rounded-[38px] border border-slate-900/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.82),rgba(241,248,255,0.76))] p-7 shadow-[0_32px_90px_-62px_rgba(15,23,42,0.46),inset_0_1px_0_rgba(255,255,255,0.95)] backdrop-blur-xl md:grid-cols-[0.7fr_0.3fr] md:p-10 lg:p-12'
+        className='border-border/70 bg-card/[0.72] relative mx-auto grid max-w-[1320px] gap-10 overflow-hidden rounded-[38px] border p-7 shadow-[0_32px_90px_-62px_rgba(15,23,42,0.46),inset_0_1px_0_color-mix(in_oklch,var(--background)_72%,white)] backdrop-blur-xl md:grid-cols-[0.7fr_0.3fr] md:p-10 lg:p-12 dark:border-white/10 dark:bg-white/[0.045] dark:shadow-[0_34px_100px_-64px_rgba(0,0,0,0.88),inset_0_1px_0_rgba(255,255,255,0.08)]'
         animation='scale-in'
       >
         <div
           aria-hidden
-          className='absolute right-[-10rem] bottom-[-14rem] size-[32rem] rounded-full bg-blue-500/10 blur-3xl'
+          className='absolute right-[-10rem] bottom-[-14rem] size-[32rem] rounded-full bg-sky-500/10 blur-3xl dark:bg-sky-300/10'
+        />
+        <div
+          aria-hidden
+          className='absolute top-[-12rem] left-[-10rem] size-[28rem] rounded-full bg-emerald-500/10 blur-3xl dark:bg-emerald-300/10'
         />
         <div className='relative'>
-          <p className='mb-4 font-mono text-xs font-bold tracking-[0.14em] text-blue-600 uppercase'>
+          <p className='mb-4 font-mono text-xs font-bold tracking-[0.14em] text-sky-600 uppercase dark:text-sky-300'>
             {t('home.axiom.cta.eyebrow')}
           </p>
-          <h2 className='max-w-[760px] text-4xl leading-[1.04] font-extrabold tracking-normal text-balance text-slate-950 md:text-5xl'>
+          <h2 className='text-foreground max-w-[760px] text-4xl leading-[1.04] font-extrabold tracking-normal text-balance md:text-5xl'>
             {t('home.axiom.cta.title')}
           </h2>
-          <p className='mt-6 max-w-[600px] text-base leading-relaxed text-pretty text-slate-600'>
+          <p className='text-muted-foreground mt-6 max-w-[600px] text-base leading-relaxed text-pretty'>
             {t('home.axiom.cta.description')}
           </p>
         </div>
 
         <div className='relative flex flex-col justify-end gap-3 md:items-end'>
           <Button
-            className='group h-11 w-full rounded-full bg-slate-950 px-5 text-sm font-semibold text-white hover:bg-slate-800 md:w-auto'
+            className='group h-11 w-full rounded-full bg-[linear-gradient(135deg,oklch(0.55_0.2_250),oklch(0.67_0.16_165))] px-5 text-sm font-semibold text-white shadow-[0_18px_42px_-24px_oklch(0.58_0.18_238_/_0.78)] hover:opacity-95 md:w-auto'
             render={<Link to='/sign-up' />}
           >
             {t('home.axiom.actions.getStarted')}
@@ -67,7 +71,7 @@ export function CTA(props: CTAProps) {
           </Button>
           <Button
             variant='outline'
-            className='h-11 w-full rounded-full border-slate-900/10 bg-white/70 px-5 text-sm font-semibold md:w-auto'
+            className='border-border/70 bg-background/[0.68] hover:bg-accent/70 h-11 w-full rounded-full px-5 text-sm font-semibold backdrop-blur-xl md:w-auto dark:border-white/10 dark:bg-white/[0.045]'
             render={<Link to='/pricing' />}
           >
             {t('home.axiom.actions.modelSquare')}
