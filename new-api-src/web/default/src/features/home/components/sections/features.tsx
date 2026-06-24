@@ -63,29 +63,29 @@ export function Features(_props: FeaturesProps) {
     <section className='relative z-10 px-4 py-20 sm:px-6 md:py-28 lg:px-8'>
       <div className='mx-auto grid max-w-[1320px] gap-10 lg:grid-cols-[0.46fr_0.54fr] lg:gap-16'>
         <AnimateInView className='lg:pt-10'>
-          <p className='mb-4 font-mono text-xs font-bold tracking-[0.14em] text-blue-600 uppercase'>
+          <p className='mb-4 font-mono text-xs font-bold tracking-[0.14em] text-sky-600 uppercase dark:text-sky-300'>
             {t('home.axiom.features.eyebrow')}
           </p>
-          <h2 className='max-w-[540px] text-4xl leading-[1.04] font-extrabold tracking-normal text-balance text-slate-950 md:text-5xl'>
+          <h2 className='text-foreground max-w-[540px] text-4xl leading-[1.04] font-extrabold tracking-normal text-balance md:text-5xl'>
             {t('home.axiom.features.title')}
           </h2>
-          <p className='mt-6 max-w-[520px] text-base leading-relaxed text-pretty text-slate-600'>
+          <p className='text-muted-foreground mt-6 max-w-[520px] text-base leading-relaxed text-pretty'>
             {t('home.axiom.features.description')}
           </p>
         </AnimateInView>
 
         <AnimateInView
           animation='scale-in'
-          className='relative overflow-hidden rounded-[34px] border border-slate-900/8 bg-slate-950 p-5 text-white shadow-[0_40px_96px_-58px_rgba(15,23,42,0.68)] md:p-7'
+          className='relative overflow-hidden rounded-[34px] border border-slate-950/10 bg-slate-950 p-5 text-white shadow-[0_40px_96px_-58px_rgba(15,23,42,0.68)] md:p-7 dark:border-white/10 dark:bg-black/[0.35] dark:shadow-[0_42px_100px_-60px_rgba(0,0,0,0.9)]'
         >
           <div
             aria-hidden
-            className='absolute inset-0 bg-[radial-gradient(circle_at_68%_24%,oklch(0.68_0.15_165_/_0.34),transparent_18rem),radial-gradient(circle_at_12%_92%,oklch(0.59_0.18_258_/_0.28),transparent_20rem)]'
+            className='absolute inset-0 bg-[radial-gradient(circle_at_68%_24%,oklch(0.68_0.15_165_/_0.34),transparent_18rem),radial-gradient(circle_at_12%_92%,oklch(0.59_0.18_258_/_0.28),transparent_20rem),linear-gradient(135deg,rgba(255,255,255,0.08),transparent_42%)]'
           />
           <div className='relative grid gap-4 md:grid-cols-[1fr_0.78fr]'>
-            <div className='rounded-[28px] border border-white/10 bg-white/[0.055] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]'>
+            <div className='rounded-[28px] border border-white/10 bg-white/[0.055] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-xl'>
               <div className='mb-6 flex items-center justify-between'>
-                <span className='font-mono text-[11px] font-bold tracking-[0.12em] text-white/48 uppercase'>
+                <span className='font-mono text-[11px] font-bold tracking-[0.12em] text-white/[0.48] uppercase'>
                   {t('home.axiom.features.visual.title')}
                 </span>
                 <span className='inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-2.5 py-1 text-xs text-emerald-200'>
@@ -98,19 +98,19 @@ export function Features(_props: FeaturesProps) {
                 {signalRows.map(([name, label], index) => (
                   <div
                     key={name}
-                    className='grid grid-cols-[1fr_auto] items-center gap-4 rounded-2xl border border-white/8 bg-white/[0.045] px-4 py-3'
+                    className='grid grid-cols-[1fr_auto] items-center gap-4 rounded-2xl border border-white/[0.08] bg-white/[0.045] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]'
                   >
                     <div>
                       <strong className='block text-sm font-semibold'>
                         {name}
                       </strong>
-                      <span className='mt-1 block text-xs text-white/48'>
+                      <span className='mt-1 block text-xs text-white/[0.48]'>
                         {label}
                       </span>
                     </div>
                     <div className='h-1.5 w-24 overflow-hidden rounded-full bg-white/10'>
                       <div
-                        className='axiom-meter h-full rounded-full bg-cyan-300'
+                        className='axiom-meter h-full rounded-full bg-[linear-gradient(90deg,oklch(0.74_0.14_210),oklch(0.78_0.16_158),oklch(0.82_0.18_82))]'
                         style={{ animationDelay: `${index * -0.7}s` }}
                       />
                     </div>
@@ -120,15 +120,15 @@ export function Features(_props: FeaturesProps) {
             </div>
 
             <div className='grid gap-4'>
-              <div className='rounded-[28px] border border-white/10 bg-white/[0.055] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]'>
+              <div className='rounded-[28px] border border-white/10 bg-white/[0.055] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-xl'>
                 <Braces className='mb-5 size-5 text-cyan-200' />
                 <code className='block font-mono text-xs leading-relaxed whitespace-pre-wrap text-white/70'>
                   {`base_url: /v1\nroute: weighted\npricing: live\nfallback: enabled`}
                 </code>
               </div>
-              <div className='rounded-[28px] border border-white/10 bg-white/[0.055] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]'>
+              <div className='rounded-[28px] border border-white/10 bg-white/[0.055] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-xl'>
                 <Activity className='mb-5 size-5 text-emerald-200' />
-                <p className='text-sm leading-relaxed text-white/66'>
+                <p className='text-sm leading-relaxed text-white/[0.66]'>
                   {t('home.axiom.features.visual.note')}
                 </p>
               </div>
@@ -143,15 +143,19 @@ export function Features(_props: FeaturesProps) {
               <AnimateInView
                 key={feature.title}
                 delay={index * 90}
-                className='rounded-[28px] border border-slate-900/8 bg-white/70 p-6 shadow-[0_24px_64px_-52px_rgba(15,23,42,0.42),inset_0_1px_0_rgba(255,255,255,0.9)] backdrop-blur-xl'
+                className='border-border/70 bg-card/[0.66] group relative overflow-hidden rounded-[28px] border p-6 shadow-[0_24px_64px_-52px_rgba(15,23,42,0.42),inset_0_1px_0_color-mix(in_oklch,var(--background)_74%,white)] backdrop-blur-xl dark:border-white/10 dark:bg-white/[0.045] dark:shadow-[0_24px_72px_-54px_rgba(0,0,0,0.82),inset_0_1px_0_rgba(255,255,255,0.08)]'
               >
-                <div className='mb-8 flex size-11 items-center justify-center rounded-2xl bg-blue-600 text-white'>
+                <div
+                  aria-hidden
+                  className='absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-sky-400/50 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100'
+                />
+                <div className='mb-8 flex size-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,oklch(0.56_0.19_248),oklch(0.66_0.16_165))] text-white shadow-[0_16px_32px_-20px_oklch(0.58_0.18_238_/_0.8)]'>
                   <Icon className='size-5' strokeWidth={1.8} />
                 </div>
-                <h3 className='text-lg font-bold tracking-normal text-slate-950'>
+                <h3 className='text-foreground text-lg font-bold tracking-normal'>
                   {feature.title}
                 </h3>
-                <p className='mt-3 text-sm leading-relaxed text-pretty text-slate-600'>
+                <p className='text-muted-foreground mt-3 text-sm leading-relaxed text-pretty'>
                   {feature.description}
                 </p>
               </AnimateInView>

@@ -577,37 +577,37 @@ For commercial licensing, please contact support@quantumnous.com
 
 .axiom-chip-a {
   top: 19%;
-  left: 3%;
+  left: 2%;
   animation-delay: -0.4s;
 }
 .axiom-chip-b {
-  top: 28%;
-  right: 2%;
+  top: 30%;
+  right: 0;
   animation-delay: -1.2s;
 }
 .axiom-chip-c {
   bottom: 24%;
-  left: 8%;
+  left: 6%;
   animation-delay: -2s;
 }
 .axiom-chip-d {
-  right: 4%;
+  right: 2%;
   bottom: 24%;
   animation-delay: -2.8s;
 }
 .axiom-chip-e {
-  top: 4%;
-  left: 34%;
+  top: 2%;
+  left: 31%;
   animation-delay: -1.7s;
 }
 .axiom-chip-f {
   right: 24%;
-  bottom: 17%;
+  bottom: 13%;
   animation-delay: -3.2s;
 }
 .axiom-chip-g {
-  bottom: 10%;
-  left: 35%;
+  bottom: 8%;
+  left: 34%;
   animation-delay: -2.4s;
 }
 
@@ -618,7 +618,8 @@ For commercial licensing, please contact support@quantumnous.com
   background: linear-gradient(
     90deg,
     transparent,
-    oklch(0.59 0.18 258 / 34%),
+    oklch(0.59 0.18 248 / 42%),
+    oklch(0.68 0.15 165 / 34%),
     transparent
   );
   transform-origin: center;
@@ -644,15 +645,22 @@ For commercial licensing, please contact support@quantumnous.com
 }
 
 @media (max-width: 640px) {
+  .axiom-chip {
+    min-width: 104px;
+    padding: 0.55rem 0.65rem;
+  }
   .axiom-chip-a,
   .axiom-chip-c,
   .axiom-chip-g {
-    left: 0;
+    left: -0.25rem;
   }
   .axiom-chip-b,
   .axiom-chip-d,
   .axiom-chip-f {
-    right: 0;
+    right: -0.25rem;
+  }
+  .axiom-chip-e {
+    left: calc(50% - 58px);
   }
 }
 

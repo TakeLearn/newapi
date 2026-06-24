@@ -51,26 +51,30 @@ export function Stats(_props: StatsProps) {
   ]
 
   return (
-    <section className='relative z-10 px-4 py-16 sm:px-6 md:py-20 lg:px-8'>
+    <section className='relative z-10 px-4 py-14 sm:px-6 md:py-20 lg:px-8'>
       <div className='mx-auto max-w-[1320px]'>
-        <AnimateInView className='grid overflow-hidden rounded-[32px] border border-slate-900/8 bg-white/62 shadow-[0_26px_70px_-54px_rgba(15,23,42,0.42),inset_0_1px_0_rgba(255,255,255,0.92)] backdrop-blur-xl md:grid-cols-4'>
+        <AnimateInView className='border-border/70 bg-card/[0.62] grid overflow-hidden rounded-[32px] border shadow-[0_26px_70px_-54px_rgba(15,23,42,0.42),inset_0_1px_0_color-mix(in_oklch,var(--background)_72%,white)] backdrop-blur-xl md:grid-cols-4 dark:border-white/10 dark:bg-white/[0.045] dark:shadow-[0_26px_80px_-58px_rgba(0,0,0,0.82),inset_0_1px_0_rgba(255,255,255,0.08)]'>
           {items.map((item, index) => (
             <div
               key={item.label}
-              className='relative min-h-[150px] border-b border-slate-900/8 p-6 last:border-b-0 md:border-r md:border-b-0 md:last:border-r-0 lg:p-7'
+              className='border-border/60 group relative min-h-[158px] overflow-hidden border-b p-6 last:border-b-0 md:border-r md:border-b-0 md:last:border-r-0 lg:p-7 dark:border-white/10'
             >
-              <span className='font-mono text-[11px] font-bold tracking-[0.08em] text-slate-500 uppercase'>
+              <span
+                aria-hidden
+                className='absolute inset-x-5 top-0 h-px bg-gradient-to-r from-transparent via-sky-400/50 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100'
+              />
+              <span className='text-muted-foreground font-mono text-[11px] font-bold tracking-[0.08em] uppercase'>
                 {item.label}
               </span>
-              <strong className='mt-5 block text-2xl leading-none font-extrabold tracking-normal text-slate-950 tabular-nums md:text-3xl'>
+              <strong className='text-foreground mt-5 block text-2xl leading-none font-extrabold tracking-normal tabular-nums md:text-3xl'>
                 {item.value}
               </strong>
-              <p className='mt-4 max-w-[16rem] text-sm leading-relaxed text-pretty text-slate-600'>
+              <p className='text-muted-foreground mt-4 max-w-[16rem] text-sm leading-relaxed text-pretty'>
                 {item.description}
               </p>
               <span
                 aria-hidden
-                className='absolute right-5 bottom-5 font-mono text-[11px] text-slate-300 tabular-nums'
+                className='text-muted-foreground/[0.24] absolute right-5 bottom-5 font-mono text-[11px] tabular-nums'
               >
                 0{index + 1}
               </span>
